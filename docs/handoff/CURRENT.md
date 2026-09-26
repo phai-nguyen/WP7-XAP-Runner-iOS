@@ -707,3 +707,67 @@ When continuing this project in a new ChatGPT conversation:
 Canonical handoff:
 
 `docs/handoff/CURRENT.md`
+
+
+---
+
+## 17. Device evidence — persistent logs from black-screen build
+
+User supplied both:
+
+- `WP7Runner_TakeThis.log`
+- `WP7Runner_Persistent.log`
+
+Observed markers are identical at the failure boundary:
+
+```text
+[APP][MAIN_ENTER]
+[APP][RUNTIME] .NET 10.0.12
+[APP][OS] iOS 18.7.0
+[APP][UIApplication.Main_BEGIN]
+```
+
+No later startup markers are present:
+
+```text
+[APP][APPDELEGATE_CTOR]
+[APP][FINISHED_LAUNCHING_ENTER]
+[UI][VIEW_DID_LOAD_ENTER]
+[ILRUN1][START]
+```
+
+Therefore the current black screen occurs **before AppDelegate/UI construction** and before the ILRUN1 payload loader. The previous hypothesis that `Assembly.Load(byte[])` was blocking the first frame is not supported by this device evidence.
+
+### New startup boundary
+
+The next experiment is `ILRUN1-IOS3-AOTHOST`.
+
+Changes:
+
+1. host application and UIKit startup are AOT-compiled instead of interpreting every assembly;
+2. the Mono interpreter engine remains linked by interpreting only `System.Linq`;
+3. a dedicated `RunnerApplication : UIApplication` principal class is used;
+4. `UIApplication.Main` receives explicit principal and delegate types;
+5. Objective-C delegate registration uses the unique name `WP7RunnerAppDelegate`;
+6. the empty `UILaunchStoryboardName` entry is removed;
+7. new startup markers identify principal-class and delegate construction.
+
+Expected early markers:
+
+```text
+[APP][MAIN_ENTER]
+[APP][BUILD] ILRUN1-IOS3-AOTHOST
+[APP][APPDELEGATE_TYPE] ...
+[APP][PRINCIPAL_TYPE] ...
+[APP][UIApplication.Main_BEGIN]
+[APP][UIAPPLICATION_CTOR]
+[APP][APPDELEGATE_CTOR]
+[APP][FINISHED_LAUNCHING_ENTER]
+[UI][VIEW_DID_LOAD_ENTER]
+```
+
+If `UIAPPLICATION_CTOR` appears but `APPDELEGATE_CTOR` does not, the failure moves to delegate registration/creation.
+
+If neither appears, the problem remains inside native/managed UIApplication startup.
+
+If UI markers appear, the UIKit bootstrap problem is solved and ILRUN1 can resume as the next runtime boundary.

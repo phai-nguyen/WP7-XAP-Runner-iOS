@@ -12,6 +12,10 @@
   <string>0.1</string>
   <key>CFBundleVersion</key>
   <string>1</string>
+  <key>UIFileSharingEnabled</key>
+  <true/>
+  <key>LSSupportsOpeningDocumentsInPlace</key>
+  <true/>
   <key>LSRequiresIPhoneOS</key>
   <true/>
   <key>MinimumOSVersion</key>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" colorMatched="YES" initialViewController="BOOTUI1">
+    <device id="retina6_12" orientation="portrait" appearance="dark"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <scene sceneID="BOOTUI1-SCENE">
+            <objects>
+                <viewController id="BOOTUI1" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="BOOTUI1-VIEW">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="WP7 XAP Runner" textAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="BOOTUI1-LABEL">
+                                <rect key="frame" x="56" y="403" width="281" height="46"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="30"/>
+                                <color key="textColor" red="0.0" green="0.8" blue="1.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            </label>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="BOOTUI1-SAFE"/>
+                        <color key="backgroundColor" red="0.0196" green="0.0706" blue="0.1255" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="BOOTUI1-LABEL" firstAttribute="centerX" secondItem="BOOTUI1-VIEW" secondAttribute="centerX" id="CX"/>
+                            <constraint firstItem="BOOTUI1-LABEL" firstAttribute="centerY" secondItem="BOOTUI1-VIEW" secondAttribute="centerY" id="CY"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="BOOTUI1-FIRST" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+    </scenes>
+</document>

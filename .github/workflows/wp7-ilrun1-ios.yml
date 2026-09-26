@@ -125,7 +125,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: WP7-ILRUN1-IOS3-AOTHost-ios15-unsigned
-          path: |
-            artifacts/WP7-ILRUN1-IOS3-AOTHost-ios15-unsigned.ipa
-            src/ILRun1Host/Assets/IlPayload.dll
+          path: artifacts/WP7-ILRUN1-IOS3-AOTHost-ios15-unsigned.ipa
           if-no-files-found: error

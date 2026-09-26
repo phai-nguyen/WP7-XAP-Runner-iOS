@@ -17,8 +17,6 @@
 
     <!-- Critical experiment setting: execute managed IL without JIT-generated native code. -->
     <UseInterpreter>false</UseInterpreter>
-    <!-- Keep the Mono interpreter engine linked without interpreting the UIKit host itself. -->
-    <MtouchInterpreter>System.Linq</MtouchInterpreter>
     <TrimMode>copy</TrimMode>
     <MtouchUseLlvm>false</MtouchUseLlvm>
   </PropertyGroup>

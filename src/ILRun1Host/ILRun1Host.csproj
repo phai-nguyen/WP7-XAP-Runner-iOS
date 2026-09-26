@@ -17,6 +17,8 @@
 
     <!-- Critical experiment setting: execute managed IL without JIT-generated native code. -->
     <UseInterpreter>false</UseInterpreter>
+    <!-- Keep UIKit/AOT host native while linking Mono interpreter for external IL. -->
+    <MtouchInterpreter>System.Linq</MtouchInterpreter>
     <TrimMode>full</TrimMode>
     <MtouchUseLlvm>false</MtouchUseLlvm>
   </PropertyGroup>

@@ -1233,3 +1233,21 @@ The device pass gate remains the full sequence through:
 ```
 
 Only after that exact device PASS does work move to BIND1.
+
+
+---
+
+## 30. ILRUN1-NET9-ROOTSR build result — GREEN, device test pending
+
+The targeted System.Runtime-preservation experiment has built and packaged successfully.
+
+- GitHub Actions run: `36278737496` — **SUCCESS / GREEN**
+- Commit: `f5c43353500e94cb9ef7913993b5e5ad5bf4379a`
+- Artifact: `WP7-ILRUN1-NET9-ROOTSR-ios15-unsigned`
+- Artifact ID: `10918475675`
+- Artifact digest: `sha256:1bb597a5be0dc40de2de9a9729e3420dd597bebc97854710865dcbb99e7c2406`
+- Artifact ZIP contains the IPA only.
+
+The device test should determine whether `System.Runtime` was available to the dynamic payload resolver. Collect the newest `WP7Runner_TakeThis.log` and `WP7Runner_Persistent.log`.
+
+BIND1 remains blocked until a physical iOS 18.7 test produces `[ILRUN1][END] PASS` and `XAP_ILRUN1_PASS:42`.

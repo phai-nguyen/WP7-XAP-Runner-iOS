@@ -7,7 +7,6 @@ on:
       - 'src/IlPayload/**'
       - 'src/ILRun1Host/**'
       - 'tests/assert-ilrun1-interpreter-config.py'
-      - 'docs/handoff/CURRENT.md'
       - '.github/workflows/wp7-ilrun1-ios.yml'
   workflow_dispatch:
 

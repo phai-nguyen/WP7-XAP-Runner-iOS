@@ -73,7 +73,8 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          dotnet publish src/ILRun1Host/ILRun1Host.csproj             -f net10.0-ios             -c Release             -r ios-arm64             -p:RuntimeIdentifier=ios-arm64             -p:UseInterpreter=true             -p:TrimMode=copy             -p:MtouchUseLlvm=false             -p:EnableCodeSigning=false             -p:CodesignRequireProvisioningProfile=false             -p:CodesignKey=""             -p:CodesignProvision=""             -p:ArchiveOnBuild=false
+          dotnet publish src/ILRun1Host/ILRun1Host.csproj             -f net10.0-ios             -c Release             -r ios-arm64             -p:RuntimeIdentifier=ios-arm64             -p:UseInterpreter=false \
+            -p:MtouchInterpreter=System.Linq             -p:TrimMode=copy             -p:MtouchUseLlvm=false             -p:EnableCodeSigning=false             -p:CodesignRequireProvisioningProfile=false             -p:CodesignKey=""             -p:CodesignProvision=""             -p:ArchiveOnBuild=false
 
       - name: Verify device app contract
         shell: bash
@@ -104,15 +105,15 @@ jobs:
           cp -R "$APP" artifacts/Payload/
           (
             cd artifacts
-            zip -qry WP7-ILRUN1-ios15-unsigned.ipa Payload
+            zip -qry WP7-ILRUN1-IOS3-AOTHost-ios15-unsigned.ipa Payload
           )
-          test -s artifacts/WP7-ILRUN1-ios15-unsigned.ipa
-          shasum -a 256 artifacts/WP7-ILRUN1-ios15-unsigned.ipa
+          test -s artifacts/WP7-ILRUN1-IOS3-AOTHost-ios15-unsigned.ipa
+          shasum -a 256 artifacts/WP7-ILRUN1-IOS3-AOTHost-ios15-unsigned.ipa
 
       - uses: actions/upload-artifact@v4
         with:
-          name: WP7-ILRUN1-ios15-unsigned
+          name: WP7-ILRUN1-IOS3-AOTHost-ios15-unsigned
           path: |
-            artifacts/WP7-ILRUN1-ios15-unsigned.ipa
+            artifacts/WP7-ILRUN1-IOS3-AOTHost-ios15-unsigned.ipa
             src/ILRun1Host/Assets/IlPayload.dll
           if-no-files-found: error

@@ -18,12 +18,13 @@ internal static class IlRun1Executor
         void Emit(string marker)
         {
             log.AppendLine(marker);
-            Console.WriteLine(marker);
+            AppLog.Write(marker);
             onLine?.Invoke(marker);
         }
 
         Emit("[ILRUN1][START]");
-        Emit("[ILRUN1][BUILD] ILRUN1-IOS1");
+        Emit("[ILRUN1][BUILD] ILRUN1-IOS2-PERSISTLOG]");
+        Emit($"[ILRUN1][LOG_DIR] {AppLog.LogDirectory ?? "<unavailable>"}");
         Emit($"[ILRUN1][RUNTIME] {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}");
         Emit($"[ILRUN1][OS] {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");
         Emit($"[ILRUN1][ARCH] {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}");
@@ -104,23 +105,9 @@ internal static class IlRun1Executor
         IlRun1Result Finish(bool passed)
         {
             Emit(passed ? "[ILRUN1][END] PASS" : "[ILRUN1][END] FAIL");
-
-            try
-            {
-                var documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                if (!string.IsNullOrWhiteSpace(documents))
-                {
-                    Directory.CreateDirectory(documents);
-                    savedPath = Path.Combine(documents, "ILRUN1.log");
-                    Emit($"[ILRUN1][LOG_SAVED] {savedPath}");
-                    File.WriteAllText(savedPath, log.ToString());
-                }
-            }
-            catch (Exception ex)
-            {
-                Emit($"[ILRUN1][LOG_SAVE_FAIL] {ex.GetType().Name}: {ex.Message}");
-            }
-
+            savedPath = AppLog.TakeThisPath;
+            if (savedPath is not null)
+                Emit($"[ILRUN1][LOG_SAVED] {savedPath}");
             return new IlRun1Result(passed, log.ToString(), savedPath);
         }
     }

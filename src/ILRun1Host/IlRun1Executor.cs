@@ -23,11 +23,18 @@ internal static class IlRun1Executor
         }
 
         Emit("[ILRUN1][START]");
-        Emit("[ILRUN1][BUILD] ILRUN1-NET9-INTERP1");
+        Emit("[ILRUN1][BUILD] ILRUN1-NET9-PAYLOAD2");
         Emit($"[ILRUN1][LOG_DIR] {AppLog.LogDirectory ?? "<unavailable>"}");
         Emit($"[ILRUN1][RUNTIME] {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}");
         Emit($"[ILRUN1][OS] {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");
         Emit($"[ILRUN1][ARCH] {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}");
+
+        ResolveEventHandler resolver = (_, eventArgs) =>
+        {
+            Emit($"[ILRUN1][ASSEMBLY_RESOLVE_REQUEST] {eventArgs.Name}");
+            return null;
+        };
+        AppDomain.CurrentDomain.AssemblyResolve += resolver;
 
         var success = false;
         string? savedPath = null;
@@ -106,6 +113,7 @@ internal static class IlRun1Executor
 
         IlRun1Result Finish(bool passed)
         {
+            AppDomain.CurrentDomain.AssemblyResolve -= resolver;
             Emit(passed ? "[ILRUN1][END] PASS" : "[ILRUN1][END] FAIL");
             savedPath = AppLog.TakeThisPath;
             if (savedPath is not null)

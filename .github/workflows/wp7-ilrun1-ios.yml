@@ -19,9 +19,9 @@ jobs:
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '9.0.303'
 
-      - name: Select Xcode 26.0
+      - name: Select Xcode 16.4
         shell: bash
         run: |
           set -euxo pipefail
@@ -39,14 +39,15 @@ jobs:
           clang --version
           ls -1 /Applications | grep '^Xcode' || true
 
-      - name: Install iOS workload
+      - name: Install pinned iOS 18.5 workload
         shell: bash
         run: |
           set -euxo pipefail
-          if ! dotnet workload list | grep -qE '^[[:space:]]*ios[[:space:]]'; then
-            dotnet workload install ios --skip-manifest-update
-          fi
-          dotnet workload list
+          dotnet --version
+          dotnet workload install ios --version 9.0.303
+          dotnet workload list | tee /tmp/workloads.txt
+          grep -q '18.5.9207/9.0.100' /tmp/workloads.txt
+          echo '[BOOTUI2][WORKLOAD_PIN] ios=18.5.9207 workload-set=9.0.303'
 
       - name: Build external IL payload
         shell: bash

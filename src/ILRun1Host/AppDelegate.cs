@@ -1,17 +1,13 @@
+using CoreGraphics;
 using Foundation;
 using UIKit;
 
 namespace WP7ILRun1;
 
-[Register("WP7RunnerAppDelegate")]
-public sealed class AppDelegate : UIApplicationDelegate
+[Register("AppDelegate")]
+public class AppDelegate : UIApplicationDelegate
 {
     public override UIWindow? Window { get; set; }
-
-    public AppDelegate()
-    {
-        AppLog.Write("[APP][APPDELEGATE_CTOR]");
-    }
 
     public override bool FinishedLaunching(UIApplication application, NSDictionary? launchOptions)
     {
@@ -19,15 +15,37 @@ public sealed class AppDelegate : UIApplicationDelegate
 
         try
         {
-            var window = new UIWindow(UIScreen.MainScreen.Bounds);
-            var controller = new MainViewController();
-            window.RootViewController = controller;
-            window.BackgroundColor = UIColor.SystemGray6;
-            Window = window;
-            window.MakeKeyAndVisible();
+            Window = new UIWindow(UIScreen.MainScreen.Bounds);
 
-            AppLog.Write($"[APP][WINDOW_READY] bounds={window.Bounds}");
-            AppLog.Write($"[APP][ROOT_VC] {controller.GetType().FullName}");
+            var controller = new UIViewController();
+            controller.View!.BackgroundColor = UIColor.FromRGB(5, 18, 32);
+
+            var title = new UILabel(new CGRect(20, 80, Window.Bounds.Width - 40, 54))
+            {
+                Text = "WP7 XAP Runner",
+                TextColor = UIColor.Cyan,
+                Font = UIFont.BoldSystemFontOfSize(30),
+                TextAlignment = UITextAlignment.Center,
+                AutoresizingMask = UIViewAutoresizing.FlexibleWidth
+            };
+            controller.View.AddSubview(title);
+
+            var status = new UILabel(new CGRect(20, 150, Window.Bounds.Width - 40, 120))
+            {
+                Text = "BOOTUI1 PASS\nUIKit host is rendering.\nIL runtime is intentionally disabled in this build.",
+                TextColor = UIColor.White,
+                Font = UIFont.SystemFontOfSize(17),
+                TextAlignment = UITextAlignment.Center,
+                Lines = 0,
+                AutoresizingMask = UIViewAutoresizing.FlexibleWidth
+            };
+            controller.View.AddSubview(status);
+
+            Window.RootViewController = controller;
+            Window.MakeKeyAndVisible();
+
+            AppLog.Write($"[APP][WINDOW_READY] bounds={Window.Bounds}");
+            AppLog.Write("[APP][BOOTUI1_VISIBLE_REQUESTED]");
             AppLog.Write("[APP][FINISHED_LAUNCHING_EXIT] true");
             return true;
         }
@@ -49,7 +67,4 @@ public sealed class AppDelegate : UIApplicationDelegate
 
     public override void OnResignActivation(UIApplication application) =>
         AppLog.Write("[APP][ON_RESIGN_ACTIVATION]");
-
-    public override void WillTerminate(UIApplication application) =>
-        AppLog.Write("[APP][WILL_TERMINATE]");
 }

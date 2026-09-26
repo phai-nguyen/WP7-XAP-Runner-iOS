@@ -69,9 +69,9 @@ jobs:
         run: |
           set -euxo pipefail
           dotnet build src/IlPayload/IlPayload.csproj -c Release
-          test -s src/IlPayload/bin/Release/netstandard2.0/IlPayload.dll
+          test -s src/IlPayload/bin/Release/net9.0/IlPayload.dll
           mkdir -p src/ILRun1Host/Assets
-          cp src/IlPayload/bin/Release/netstandard2.0/IlPayload.dll src/ILRun1Host/Assets/IlPayload.dll
+          cp src/IlPayload/bin/Release/net9.0/IlPayload.dll src/ILRun1Host/Assets/IlPayload.dll
           shasum -a 256 src/ILRun1Host/Assets/IlPayload.dll
 
       - name: Verify payload is not statically referenced
@@ -133,13 +133,13 @@ jobs:
           cp -R "$APP" artifacts/Payload/
           (
             cd artifacts
-            zip -qry WP7-ILRUN1-NET9-INTERP1-ios15-unsigned.ipa Payload
+            zip -qry WP7-ILRUN1-NET9-PAYLOAD2-ios15-unsigned.ipa Payload
           )
-          test -s artifacts/WP7-ILRUN1-NET9-INTERP1-ios15-unsigned.ipa
-          shasum -a 256 artifacts/WP7-ILRUN1-NET9-INTERP1-ios15-unsigned.ipa
+          test -s artifacts/WP7-ILRUN1-NET9-PAYLOAD2-ios15-unsigned.ipa
+          shasum -a 256 artifacts/WP7-ILRUN1-NET9-PAYLOAD2-ios15-unsigned.ipa
 
       - uses: actions/upload-artifact@v4
         with:
-          name: WP7-ILRUN1-NET9-INTERP1-ios15-unsigned
-          path: artifacts/WP7-ILRUN1-NET9-INTERP1-ios15-unsigned.ipa
+          name: WP7-ILRUN1-NET9-PAYLOAD2-ios15-unsigned
+          path: artifacts/WP7-ILRUN1-NET9-PAYLOAD2-ios15-unsigned.ipa
           if-no-files-found: error

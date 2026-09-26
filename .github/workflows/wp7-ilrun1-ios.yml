@@ -69,7 +69,7 @@ jobs:
           grep -n 'BundleResource Include="Assets/IlPayload.dll"' src/ILRun1Host/ILRun1Host.csproj
           echo '[ILRUN1][STATIC_REFERENCE_CHECK] PASS'
 
-      - name: Publish unsigned iOS 15 device app
+      - name: Publish BOOTUI1 unsigned iOS 15 device app
         shell: bash
         run: |
           set -euxo pipefail
@@ -79,7 +79,6 @@ jobs:
             -r ios-arm64 \
             -p:RuntimeIdentifier=ios-arm64 \
             -p:UseInterpreter=false \
-            -p:MtouchInterpreter=System.Linq \
             -p:TrimMode=copy \
             -p:MtouchUseLlvm=false \
             -p:EnableCodeSigning=false \
@@ -105,8 +104,8 @@ jobs:
           test "$MIN_IOS" = "15.0"
           test -s "$APP/$EXECUTABLE"
 
-          echo '[ILRUN1][DEVICE_APP_BUILD] PASS'
-          echo '[ILRUN1][PAYLOAD_RAW_FILE] PASS'
+          echo '[BOOTUI1][DEVICE_APP_BUILD] PASS'
+          echo '[BOOTUI1][PAYLOAD_RAW_FILE] PASS'
 
       - name: Package unsigned IPA for ESign
         shell: bash
@@ -117,13 +116,13 @@ jobs:
           cp -R "$APP" artifacts/Payload/
           (
             cd artifacts
-            zip -qry WP7-ILRUN1-IOS3-AOTHost-ios15-unsigned.ipa Payload
+            zip -qry WP7-BOOTUI1-ios15-unsigned.ipa Payload
           )
-          test -s artifacts/WP7-ILRUN1-IOS3-AOTHost-ios15-unsigned.ipa
-          shasum -a 256 artifacts/WP7-ILRUN1-IOS3-AOTHost-ios15-unsigned.ipa
+          test -s artifacts/WP7-BOOTUI1-ios15-unsigned.ipa
+          shasum -a 256 artifacts/WP7-BOOTUI1-ios15-unsigned.ipa
 
       - uses: actions/upload-artifact@v4
         with:
-          name: WP7-ILRUN1-IOS3-AOTHost-ios15-unsigned
-          path: artifacts/WP7-ILRUN1-IOS3-AOTHost-ios15-unsigned.ipa
+          name: WP7-BOOTUI1-ios15-unsigned
+          path: artifacts/WP7-BOOTUI1-ios15-unsigned.ipa
           if-no-files-found: error

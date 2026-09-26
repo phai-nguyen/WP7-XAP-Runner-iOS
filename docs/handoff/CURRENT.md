@@ -890,3 +890,24 @@ BOOTUI2 interpretation:
 
 - managed UI appears -> failure is specific to newer runtime/toolchain configuration; use the net9/iOS18.5 host as the stable shell and reintroduce IL execution incrementally.
 - launch screen then black again -> investigate managed/native registrar/bootstrap or re-signing behavior independent of the runtime generation.
+
+
+### BOOTUI2 build result
+
+Pinned toolchain build is now **GREEN**.
+
+GitHub Actions run:
+
+`36252039804`
+
+Artifact:
+
+`WP7-BOOTUI2-NET9-XCODE16-ios15-unsigned`
+
+Artifact ID:
+
+`10909666942`
+
+Artifact archive contains only the unsigned IPA, per project packaging rule.
+
+This is the next physical-device test build.

@@ -21,6 +21,21 @@ jobs:
         with:
           dotnet-version: '9.0.303'
 
+      - name: Pin .NET 9 SDK and workload set
+        shell: bash
+        run: |
+          cat > global.json <<'JSON'
+          {
+            "sdk": {
+              "version": "9.0.303",
+              "rollForward": "disable",
+              "workloadVersion": "9.0.303"
+            }
+          }
+          JSON
+          dotnet --version
+          test "$(dotnet --version)" = "9.0.303"
+
       - name: Select Xcode 16.4
         shell: bash
         run: |
@@ -44,7 +59,7 @@ jobs:
         run: |
           set -euxo pipefail
           dotnet --version
-          dotnet workload install ios --version 9.0.303
+          dotnet workload install ios
           dotnet workload list | tee /tmp/workloads.txt
           grep -q '18.5.9207/9.0.100' /tmp/workloads.txt
           echo '[BOOTUI2][WORKLOAD_PIN] ios=18.5.9207 workload-set=9.0.303'

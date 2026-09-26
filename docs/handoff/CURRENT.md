@@ -1093,3 +1093,42 @@ If NET9-PAYLOAD2 reaches:
 ```
 
 then ILRUN1 is considered device-PASS and the project moves to BIND1.
+
+
+---
+
+## 26. ILRUN1-NET9-PAYLOAD2 build result
+
+The net9 payload compatibility fix has built successfully.
+
+GitHub Actions:
+
+- Run: `36255549638`
+- Result: **SUCCESS / GREEN**
+- Artifact: `WP7-ILRUN1-NET9-PAYLOAD2-ios15-unsigned`
+- Artifact ID: `10910193640`
+- Artifact archive contains only the IPA.
+
+Current status:
+
+```text
+External Assembly.Load(byte[])    DEVICE PASS
+netstandard dependency issue      UNDERSTOOD
+Payload retargeted to net9.0      IMPLEMENTED
+ILRUN1-NET9-PAYLOAD2 CI           GREEN
+ILRUN1-NET9-PAYLOAD2 device test  NEXT
+```
+
+The immediate next action is a physical-device test of this artifact.
+
+If the device reaches:
+
+```text
+[ILRUN1][TYPE_RESOLVE_OK]
+[ILRUN1][METHOD_RESOLVE_OK]
+[ILRUN1][METHOD_INVOKE_OK] result=XAP_ILRUN1_PASS:42
+[ILRUN1][PASS]
+[ILRUN1][END] PASS
+```
+
+then ILRUN1 is officially device-PASS and the project moves immediately to **BIND1**.

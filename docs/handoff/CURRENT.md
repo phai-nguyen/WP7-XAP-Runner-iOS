@@ -1132,3 +1132,44 @@ If the device reaches:
 ```
 
 then ILRUN1 is officially device-PASS and the project moves immediately to **BIND1**.
+
+
+---
+
+## 27. ILRUN1-NET9-PAYLOAD2 device result — FAIL at System.Runtime type resolution
+
+Physical-device test on iOS 18.7 on 2026-09-27:
+
+- host UI started and remained visible;
+- external payload was found and read (4,608 bytes);
+- `Assembly.Load(byte[])` succeeded;
+- type resolution stopped with:
+
+```text
+System.TypeLoadException:
+Could not resolve type with token 0100000f from typeref
+(expected class 'System.Object' in assembly
+'System.Runtime, Version=9.0.0.0, Culture=neutral,
+PublicKeyToken=b03f5f7f11d50a3a')
+```
+
+The device log showed host build tag `ILRUN1-NET9-INTERP1` while the IL probe tag was `ILRUN1-NET9-PAYLOAD2`; the next build uses a distinct tag for both.
+
+### Next controlled experiment: ILRUN1-NET9-INTERPALL
+
+The host currently selects only `System.Linq` for Mono interpretation. The next probe changes this one runtime setting to `MtouchInterpreter=all`, with `UseInterpreter=false` retained and the .NET 9 / iOS 18.5 toolchain unchanged.
+
+The raw payload remains a BundleResource and must not become a ProjectReference or managed Reference. A CI assertion checks both the interpreter setting and the no-static-reference contract.
+
+This is a hypothesis test, not yet a confirmed root-cause fix. The device pass gate remains:
+
+```text
+[ILRUN1][ASSEMBLY_LOAD_OK]
+[ILRUN1][TYPE_RESOLVE_OK]
+[ILRUN1][METHOD_RESOLVE_OK]
+[ILRUN1][METHOD_INVOKE_OK] result=XAP_ILRUN1_PASS:42
+[ILRUN1][PASS]
+[ILRUN1][END] PASS
+```
+
+Only after these markers does BIND1 begin.

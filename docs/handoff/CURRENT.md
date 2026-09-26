@@ -771,3 +771,72 @@ If `UIAPPLICATION_CTOR` appears but `APPDELEGATE_CTOR` does not, the failure mov
 If neither appears, the problem remains inside native/managed UIApplication startup.
 
 If UI markers appear, the UIKit bootstrap problem is solved and ILRUN1 can resume as the next runtime boundary.
+
+
+---
+
+## 18. Device evidence — IOS3 AOTHost still black
+
+User supplied:
+
+- `WP7Runner_TakeThis(1).log`
+- `WP7Runner_Persistent(1).log`
+- `WP7Runner_Persistent-prev.log`
+
+The current IOS3 device run on iOS 18.7 records:
+
+```text
+[APP][MAIN_ENTER]
+[APP][BUILD] ILRUN1-IOS3-AOTHOST
+[APP][RUNTIME] .NET 10.0.12
+[APP][OS] iOS 18.7.0
+[APP][APPDELEGATE_TYPE] WP7ILRun1.AppDelegate, WP7ILRun1, Version=0.1.0.0, Culture=neutral, PublicKeyToken=null
+[APP][PRINCIPAL_TYPE] WP7ILRun1.RunnerApplication, WP7ILRun1, Version=0.1.0.0, Culture=neutral, PublicKeyToken=null
+[APP][UIApplication.Main_BEGIN]
+```
+
+No principal-class constructor, AppDelegate constructor, FinishedLaunching, or UI markers appear.
+
+Therefore:
+
+- switching the UIKit host away from `UseInterpreter=true` did **not** move the failure boundary;
+- the current failure remains inside / immediately after `UIApplication.Main`;
+- ILRUN1 payload execution is still not reached.
+
+## 19. BOOTUI1 — official .NET iOS baseline experiment
+
+To avoid layering more fixes on an unproven host, the next build reduces startup to the official .NET iOS sample pattern:
+
+```csharp
+UIApplication.Main(args, null, typeof(AppDelegate));
+```
+
+with:
+
+- public, non-sealed `AppDelegate : UIApplicationDelegate`;
+- `[Register("AppDelegate")]`;
+- interpreter disabled entirely for the baseline;
+- no custom `UIApplication` principal;
+- direct `UIWindow + UIViewController + UILabel` construction in `FinishedLaunching`;
+- visible `LaunchScreen.storyboard`;
+- persistent file logging retained;
+- external payload remains packaged but is intentionally not executed.
+
+Expected visible screen:
+
+```text
+WP7 XAP Runner
+
+BOOTUI1 PASS
+UIKit host is rendering.
+IL runtime is intentionally disabled in this build.
+```
+
+Interpretation:
+
+- **BOOTUI1 visible** → UIKit/bootstrap is good; reintroduce interpreter/runtime incrementally.
+- **launch screen visible, then black** → native launch works but AppDelegate/runtime bridge still fails.
+- **black from start** → investigate packaging/signing/runtime compatibility below AppDelegate.
+- **FinishedLaunching markers without visible UI** → window/view presentation issue.
+
+The BOOTUI1 workflow preserves the user's artifact preference: the GitHub artifact ZIP contains only the IPA.

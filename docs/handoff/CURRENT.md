@@ -991,3 +991,44 @@ Expected success boundary:
 ```
 
 If this passes on device, proceed to **BIND1**.
+
+
+---
+
+## 24. Official iOS baseline — APPROVED
+
+The user approved the following platform strategy as the canonical baseline for the project.
+
+### Supported range
+
+- Minimum supported iOS: **15.0**
+- Primary optimization target: **iOS 18.x**
+- Primary physical-device test target: **iOS 18.7**
+- Secondary compatibility tiers: **iOS 16.x / 17.x**
+- iOS 26+: future compatibility branch only; do not replace the stable host until runtime milestones are proven.
+
+### Canonical build/runtime toolchain
+
+```text
+.NET SDK        9.0.303
+.NET runtime    9.0.7 (observed on device)
+Microsoft.iOS   18.5.9207
+Xcode           16.4
+iOS SDK         18.5
+Target          net9.0-ios
+RID             ios-arm64
+Minimum iOS     15.0
+Primary device  iOS 18.7
+```
+
+### Project rule
+
+Do not migrate the main runtime path back to .NET 10 / iOS workload 26 / Xcode 26 while ILRUN1, BIND1, XAML1, PAGE1, and NAV1 are still being established on the stable host.
+
+Future iOS 26+ experiments should happen in an isolated compatibility branch or experiment and must not replace the proven baseline unless they reach equivalent device-level stability.
+
+### Lifecycle note
+
+Current host uses the classic `UIApplicationDelegate -> UIWindow` lifecycle because that is the first proven device baseline.
+
+Scene-based lifecycle support may be added later for newer SDK/platform compatibility, but it should not be introduced before the managed runtime milestones are stable.

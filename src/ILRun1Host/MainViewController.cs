@@ -107,6 +107,18 @@ internal sealed class MainViewController : UIViewController
         _logView.Text += "[UI][PROBE_BACKGROUND_START]\n";
         AppLog.Write("[UI][PROBE_BACKGROUND_START]");
 
+        _ = Task.Run(async () =>
+        {
+            foreach (var seconds in new[] { 5, 15, 30 })
+            {
+                await Task.Delay(TimeSpan.FromSeconds(seconds == 5 ? 5 : seconds == 15 ? 10 : 15));
+                if (!_running)
+                    return;
+
+                AppLog.Write($"[ILRUN1][WATCHDOG] probe_still_running seconds={seconds}");
+            }
+        });
+
         _ = Task.Run(() =>
         {
             IlRun1Result result;

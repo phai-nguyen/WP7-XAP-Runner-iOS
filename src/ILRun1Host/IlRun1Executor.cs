@@ -53,6 +53,7 @@ internal static class IlRun1Executor
 
             // This is the decisive operation: IlPayload.dll is not a ProjectReference.
             // It exists only as a raw bundle file and is loaded from its bytes at runtime.
+            Emit("[ILRUN1][ASSEMBLY_LOAD_BEGIN]");
             var assembly = Assembly.Load(payload);
             Emit($"[ILRUN1][ASSEMBLY_LOAD_OK] {assembly.FullName}");
 
@@ -80,6 +81,7 @@ internal static class IlRun1Executor
 
             Emit("[ILRUN1][METHOD_RESOLVE_OK] IlPayload.EntryPoint.Run()");
 
+            Emit("[ILRUN1][METHOD_INVOKE_BEGIN]");
             var value = method.Invoke(null, null)?.ToString();
             Emit($"[ILRUN1][METHOD_INVOKE_OK] result={value ?? "<null>"}");
 

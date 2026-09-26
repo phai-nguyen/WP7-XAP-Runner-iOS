@@ -3,7 +3,7 @@ using UIKit;
 
 namespace WP7ILRun1;
 
-[Register("AppDelegate")]
+[Register("WP7RunnerAppDelegate")]
 public sealed class AppDelegate : UIApplicationDelegate
 {
     public override UIWindow? Window { get; set; }

@@ -911,3 +911,83 @@ Artifact ID:
 Artifact archive contains only the unsigned IPA, per project packaging rule.
 
 This is the next physical-device test build.
+
+
+---
+
+## 22. BOOTUI2 physical-device PASS
+
+Physical iPhone test confirms the stable host renders successfully.
+
+Observed device markers:
+
+```text
+[APP][MAIN_ENTER]
+[APP][BUILD] BOOTUI2-NET9-XCODE16
+[APP][RUNTIME] .NET 9.0.7
+[APP][APPDELEGATE_TYPE] WP7ILRun1.AppDelegate ...
+[APP][UIApplication.Main_BEGIN]
+[APP][FINISHED_LAUNCHING_ENTER]
+[APP][WINDOW_READY] bounds={{0, 0}, {375, 812}}
+[APP][BOOTUI1_VISIBLE_REQUESTED]
+[APP][FINISHED_LAUNCHING_EXIT] true
+[APP][ON_ACTIVATED]
+```
+
+The on-screen baseline UI is visible and remains stable.
+
+This proves:
+
+- the ESign/device deployment path is good;
+- LaunchScreen resources are good;
+- `UIApplication.Main` and AppDelegate activation work on the pinned toolchain;
+- the black-screen failure observed on the previous .NET 10 / iOS 26 toolchain does not reproduce on the pinned .NET 9 / iOS 18.5 toolchain.
+
+### Stable host baseline
+
+Treat the following as the current canonical iOS host toolchain:
+
+- .NET SDK: **9.0.303**
+- runtime observed on device: **.NET 9.0.7**
+- workload set: **9.0.303**
+- Microsoft.iOS workload: **18.5.9207**
+- Xcode: **16.4**
+- iOS SDK: **18.5**
+- target: **net9.0-ios**
+- RuntimeIdentifier: **ios-arm64**
+- minimum iOS: **15.0**
+
+Do not move the project back to .NET 10 / iOS workload 26 until the runtime milestones are proven on this stable host.
+
+## 23. ILRUN1-NET9-INTERP1 — current experiment
+
+The next build keeps the BOOTUI2 host intact and reintroduces the Mono interpreter minimally.
+
+Configuration:
+
+- `UseInterpreter=false` so the UIKit host remains AOT/native;
+- `MtouchInterpreter=System.Linq` to keep the Mono interpreter engine linked;
+- `IlPayload.dll` remains a raw bundle resource with no ProjectReference;
+- UI renders first;
+- after ~1.2 seconds, a background task runs:
+  - read payload bytes;
+  - `Assembly.Load(byte[])`;
+  - resolve `IlPayload.EntryPoint`;
+  - resolve `Run()`;
+  - reflection invoke;
+  - expect `XAP_ILRUN1_PASS:42`.
+
+The host remains visible even if the external IL probe fails.
+
+Expected success boundary:
+
+```text
+[ILRUN1][ASSEMBLY_LOAD_OK]
+[ILRUN1][TYPE_RESOLVE_OK]
+[ILRUN1][METHOD_RESOLVE_OK]
+[ILRUN1][METHOD_INVOKE_OK] result=XAP_ILRUN1_PASS:42
+[ILRUN1][PASS] external managed IL executed on iOS
+[ILRUN1][END] PASS
+```
+
+If this passes on device, proceed to **BIND1**.

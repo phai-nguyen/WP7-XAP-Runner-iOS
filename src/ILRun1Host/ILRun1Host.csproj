@@ -17,7 +17,7 @@
 
     <!-- Critical experiment setting: execute managed IL without JIT-generated native code. -->
     <UseInterpreter>false</UseInterpreter>
-    <TrimMode>copy</TrimMode>
+    <TrimMode>full</TrimMode>
     <MtouchUseLlvm>false</MtouchUseLlvm>
   </PropertyGroup>
 

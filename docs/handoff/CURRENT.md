@@ -1032,3 +1032,64 @@ Future iOS 26+ experiments should happen in an isolated compatibility branch or 
 Current host uses the classic `UIApplicationDelegate -> UIWindow` lifecycle because that is the first proven device baseline.
 
 Scene-based lifecycle support may be added later for newer SDK/platform compatibility, but it should not be introduced before the managed runtime milestones are stable.
+
+
+---
+
+## 25. ILRUN1-NET9-INTERP1 device result — dynamic load PASS, netstandard dependency FAIL
+
+Physical-device logs prove that the stable net9 host successfully reaches and completes `Assembly.Load(byte[])` for an external raw DLL.
+
+Observed sequence:
+
+```text
+[ILRUN1][FILE_FOUND]
+[ILRUN1][FILE_READ_OK] bytes=5120
+[ILRUN1][ASSEMBLY_LOAD_BEGIN]
+[ILRUN1][ASSEMBLY_LOAD_OK] IlPayload, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+```
+
+The next operation, `assembly.GetType("IlPayload.EntryPoint")`, fails with:
+
+```text
+System.IO.FileNotFoundException:
+Could not load file or assembly
+'netstandard, Version=2.0.0.0, Culture=neutral,
+PublicKeyToken=cc7b13ffcd2ddd51'
+```
+
+### Meaning
+
+This is a significant milestone:
+
+- external managed DLL bytes are readable from the IPA bundle;
+- `Assembly.Load(byte[])` succeeds on the physical iPhone;
+- the current failure is no longer the dynamic assembly loader itself;
+- failure occurs during type metadata/dependency resolution because the controlled payload was built for `netstandard2.0`.
+
+The iOS host is AOT/trimmed and does not expose the expected `netstandard.dll` facade to this dynamically loaded payload.
+
+### Next experiment: ILRUN1-NET9-PAYLOAD2
+
+Keep the same stable iOS host and interpreter configuration, but rebuild the controlled external payload for `net9.0` rather than `netstandard2.0`.
+
+Rules remain unchanged:
+
+- payload remains a raw bundle resource;
+- no ProjectReference/static managed reference to IlPayload;
+- host reads bytes and calls `Assembly.Load(byte[])`;
+- reflection resolves type/method and invokes it;
+- exact expected result remains `XAP_ILRUN1_PASS:42`.
+
+Additional `[ILRUN1][ASSEMBLY_RESOLVE_REQUEST]` markers are enabled to expose the exact next dependency if type resolution still fails.
+
+If NET9-PAYLOAD2 reaches:
+
+```text
+[ILRUN1][TYPE_RESOLVE_OK]
+[ILRUN1][METHOD_RESOLVE_OK]
+[ILRUN1][METHOD_INVOKE_OK] result=XAP_ILRUN1_PASS:42
+[ILRUN1][PASS]
+```
+
+then ILRUN1 is considered device-PASS and the project moves to BIND1.

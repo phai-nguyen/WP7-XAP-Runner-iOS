@@ -1,8 +1,29 @@
 # WP7 XAP Runner for iOS
 
+> **Project scope:** Windows Phone 7 emulator / binary-compatibility runtime research for iOS.  
+> **This is not an offensive cybersecurity project.** It is not intended for unauthorized access, exploitation, malware, credential theft, persistence, command-and-control, phishing, destructive actions, or network intrusion.  
+> See [Project Scope & Safety](docs/PROJECT-SCOPE-SAFETY.md) for the canonical scope statement.
+
 Experimental compatibility runtime for running original Windows Phone 7 `.xap` applications on iPhone.
 
 This repository is intentionally separate from the EKA2L1/Symbian project.
+
+## Current checkpoint
+
+The canonical, complete project handoff is:
+
+**[docs/handoff/CURRENT.md](docs/handoff/CURRENT.md)**
+
+Current engineering state:
+
+- XAPSCAN1 synthetic: **GREEN**
+- XAPSCAN1 real WP7 package: **GREEN**
+- ILRUN1 iOS 15 arm64 build: **GREEN**
+- first physical-device launch: **app stays alive, black content, no crash observed**
+- persistent log directory + iOS Files sharing: **IMPLEMENTED**
+- ILRUN1 moved off the UIKit main thread: **IMPLEMENTED**
+- ILRUN1-IOS2-PERSISTLOG physical-device result: **PENDING**
+- BIND1: **NEXT after ILRUN1 execution proof**
 
 ## Architecture
 

@@ -8,7 +8,7 @@ public static class Program
     {
         AppLog.Initialize();
         AppLog.Write("[APP][MAIN_ENTER]");
-        AppLog.Write("[APP][BUILD] ILRUN1-NET9-INTERPALL");
+        AppLog.Write("[APP][BUILD] ILRUN1-NET9-ROOTSR");
         AppLog.Write($"[APP][RUNTIME] {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}");
         AppLog.Write($"[APP][OS] {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");
         AppLog.Write($"[APP][APPDELEGATE_TYPE] {typeof(AppDelegate).AssemblyQualifiedName}");

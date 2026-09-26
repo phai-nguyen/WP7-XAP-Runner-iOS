@@ -1199,3 +1199,37 @@ ILRUN1-NET9-INTERPALL CI           GREEN
 ILRUN1-NET9-INTERPALL device test  NEXT
 BIND1                              WAITING FOR ILRUN1 DEVICE PASS
 ```
+
+
+---
+
+## 29. ILRUN1-NET9-INTERPALL device result — System.Runtime bind failure
+
+Physical-device test on iOS 18.7 with the INTERPALL artifact confirms:
+
+- UIKit host renders and stays visible;
+- the raw 4,608-byte payload is found and read;
+- `Assembly.Load(byte[])` succeeds;
+- type metadata requests `System.Runtime, Version=9.0.0.0`;
+- the runtime raises `AssemblyResolve`, then `FileNotFoundException` for that identity;
+- no `TYPE_RESOLVE_OK` or `XAP_ILRUN1_PASS:42` marker appears.
+
+The video shows the visible `ILRUN1 FAIL` screen and the same exception in the app's log panel. This is not an ILRUN1 pass, so BIND1 remains gated.
+
+### Next experiment: ILRUN1-NET9-ROOTSR
+
+The device app uses full trimming. This experiment adds `System.Runtime` as a `TrimmerRootAssembly` so the framework facade is retained for dependency resolution from raw, dynamically loaded net9 IL. It keeps the .NET 9 toolchain, all-assemblies interpreter setting, and raw-payload/no-static-reference contract unchanged.
+
+Additional diagnostics report the runtime core library and whether `System.Runtime`, `System.Private.CoreLib`, or `netstandard` are present in the loaded domain before payload loading.
+
+The device pass gate remains the full sequence through:
+
+```text
+[ILRUN1][TYPE_RESOLVE_OK]
+[ILRUN1][METHOD_RESOLVE_OK]
+[ILRUN1][METHOD_INVOKE_OK] result=XAP_ILRUN1_PASS:42
+[ILRUN1][PASS]
+[ILRUN1][END] PASS
+```
+
+Only after that exact device PASS does work move to BIND1.

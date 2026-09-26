@@ -24,6 +24,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Keep the System.Runtime facade available to raw dynamically loaded net9 payloads. -->
+    <TrimmerRootAssembly Include="System.Runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- IlPayload.dll is deliberately a raw bundle resource, NOT a ProjectReference. -->
     <BundleResource Include="Assets/IlPayload.dll" LogicalName="IlPayload.dll" />
   </ItemGroup>

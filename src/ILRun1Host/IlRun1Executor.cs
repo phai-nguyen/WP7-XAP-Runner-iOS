@@ -23,11 +23,18 @@ internal static class IlRun1Executor
         }
 
         Emit("[ILRUN1][START]");
-        Emit("[ILRUN1][BUILD] ILRUN1-NET9-INTERPALL");
+        Emit("[ILRUN1][BUILD] ILRUN1-NET9-ROOTSR");
         Emit($"[ILRUN1][LOG_DIR] {AppLog.LogDirectory ?? "<unavailable>"}");
         Emit($"[ILRUN1][RUNTIME] {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}");
         Emit($"[ILRUN1][OS] {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");
         Emit($"[ILRUN1][ARCH] {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}");
+        Emit($"[ILRUN1][CORELIB] {typeof(object).Assembly.FullName}");
+        foreach (var name in AppDomain.CurrentDomain.GetAssemblies()
+                     .Select(loaded => loaded.GetName().Name)
+                     .Where(name => name is "System.Runtime" or "System.Private.CoreLib" or "netstandard")
+                     .Distinct()
+                     .OrderBy(name => name, StringComparer.Ordinal))
+            Emit($"[ILRUN1][FRAMEWORK_ASSEMBLY_PRESENT] {name}");
 
         ResolveEventHandler resolver = (_, eventArgs) =>
         {

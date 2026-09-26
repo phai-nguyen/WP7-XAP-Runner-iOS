@@ -1173,3 +1173,29 @@ This is a hypothesis test, not yet a confirmed root-cause fix. The device pass g
 ```
 
 Only after these markers does BIND1 begin.
+
+
+---
+
+## 28. ILRUN1-NET9-INTERPALL build result — GREEN, device test pending
+
+The controlled all-assemblies interpreter experiment is built and packaged.
+
+GitHub Actions:
+
+- Run: `36276332074` — **SUCCESS**
+- Commit: `fad4001de8aab055f4f8d387b3c19f63b44181de`
+- Artifact: `WP7-ILRUN1-NET9-INTERPALL-ios15-unsigned`
+- Artifact ID: `10916704807`
+- Artifact digest: `sha256:af228e28d09c2a1a3841803d12f5f73ad9eba86c93552569b2eefce78d327725`
+- Artifact contains only the IPA.
+
+The CI contract test passed. The raw payload remains a BundleResource with no static ProjectReference or managed Reference. The build uses the approved .NET 9.0.303 / Microsoft.iOS 18.5.9207 / Xcode 16.4 / iOS SDK 18.5 baseline and minimum iOS 15.0.
+
+Current gate:
+
+```text
+ILRUN1-NET9-INTERPALL CI           GREEN
+ILRUN1-NET9-INTERPALL device test  NEXT
+BIND1                              WAITING FOR ILRUN1 DEVICE PASS
+```

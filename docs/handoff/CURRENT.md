@@ -840,3 +840,53 @@ Interpretation:
 - **FinishedLaunching markers without visible UI** → window/view presentation issue.
 
 The BOOTUI1 workflow preserves the user's artifact preference: the GitHub artifact ZIP contains only the IPA.
+
+
+---
+
+## 20. Device evidence — BOOTUI1 launch screen visible, managed UI still absent
+
+Physical-device test on iOS 18.7 with BOOTUI1:
+
+- the native `LaunchScreen.storyboard` is visibly rendered;
+- screen shows the dark blue WP7 XAP Runner launch design;
+- after the launch screen, the app transitions to black;
+- process remains alive;
+- persistent logs still stop at `[APP][UIApplication.Main_BEGIN]`;
+- no `FinishedLaunching` or managed UIWindow/UI markers are recorded.
+
+This proves:
+
+1. IPA packaging and re-sign/install are sufficient for iOS to execute the application;
+2. native launch storyboard resources are valid and render correctly;
+3. the failure lies after native launch-screen presentation but before the managed AppDelegate callback;
+4. ILRUN1 / Assembly.Load remains completely out of the execution path at the failure point.
+
+The supplied screen recording shows the sequence: Home -> launch screen -> persistent black application surface.
+
+## 21. BOOTUI2 — older stable toolchain A/B
+
+The official dotnet/macios iOS sample uses the same `UIApplication.Main(args, null, typeof(AppDelegate))` bootstrap pattern and targets net9.0-ios.
+
+Because BOOTUI1 on the current .NET 10 / Xcode 26 generation still does not reach AppDelegate, BOOTUI2 changes the toolchain while keeping the startup code minimal:
+
+- .NET SDK: **9.0.303**
+- workload set: **9.0.303**
+- Microsoft.iOS workload: **18.5.9207**
+- Xcode: **16.4**
+- iOS SDK: **18.5**
+- target: **net9.0-ios**
+- RuntimeIdentifier: **ios-arm64**
+- minimum iOS: **15.0**
+- interpreter: **disabled**
+- startup: official `UIApplication.Main(args, null, typeof(AppDelegate))` pattern
+- launch storyboard retained
+- persistent logging retained
+- artifact ZIP contains only one IPA.
+
+The workload is pinned explicitly because an unpinned net9 install in 2026 resolves to the newer iOS 26 workload, which requires Xcode 26 and would not be a meaningful A/B test.
+
+BOOTUI2 interpretation:
+
+- managed UI appears -> failure is specific to newer runtime/toolchain configuration; use the net9/iOS18.5 host as the stable shell and reintroduce IL execution incrementally.
+- launch screen then black again -> investigate managed/native registrar/bootstrap or re-signing behavior independent of the runtime generation.

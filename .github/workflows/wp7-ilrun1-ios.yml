@@ -19,13 +19,13 @@ jobs:
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '9.0.x'
 
       - name: Select Xcode 26.0
         shell: bash
         run: |
           set -euxo pipefail
-          sudo xcode-select -s /Applications/Xcode_26.0.1.app/Contents/Developer
+          sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
 
       - name: Environment
         shell: bash
@@ -69,17 +69,17 @@ jobs:
           grep -n 'BundleResource Include="Assets/IlPayload.dll"' src/ILRun1Host/ILRun1Host.csproj
           echo '[ILRUN1][STATIC_REFERENCE_CHECK] PASS'
 
-      - name: Publish BOOTUI1 unsigned iOS 15 device app
+      - name: Publish BOOTUI2 net9 Xcode16 iOS 15 device app
         shell: bash
         run: |
           set -euxo pipefail
           dotnet publish src/ILRun1Host/ILRun1Host.csproj \
-            -f net10.0-ios \
+            -f net9.0-ios \
             -c Release \
             -r ios-arm64 \
             -p:RuntimeIdentifier=ios-arm64 \
             -p:UseInterpreter=false \
-            -p:TrimMode=copy \
+            -p:TrimMode=full \
             -p:MtouchUseLlvm=false \
             -p:EnableCodeSigning=false \
             -p:CodesignRequireProvisioningProfile=false \
@@ -91,7 +91,7 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          APP="$(find src/ILRun1Host/bin/Release/net10.0-ios/ios-arm64 -type d -name '*.app' | head -n 1)"
+          APP="$(find src/ILRun1Host/bin/Release/net9.0-ios/ios-arm64 -type d -name '*.app' | head -n 1)"
           test -n "$APP"
           test -d "$APP"
           test -s "$APP/IlPayload.dll"
@@ -104,8 +104,8 @@ jobs:
           test "$MIN_IOS" = "15.0"
           test -s "$APP/$EXECUTABLE"
 
-          echo '[BOOTUI1][DEVICE_APP_BUILD] PASS'
-          echo '[BOOTUI1][PAYLOAD_RAW_FILE] PASS'
+          echo '[BOOTUI2][DEVICE_APP_BUILD] PASS'
+          echo '[BOOTUI2][PAYLOAD_RAW_FILE] PASS'
 
       - name: Package unsigned IPA for ESign
         shell: bash
@@ -116,13 +116,13 @@ jobs:
           cp -R "$APP" artifacts/Payload/
           (
             cd artifacts
-            zip -qry WP7-BOOTUI1-ios15-unsigned.ipa Payload
+            zip -qry WP7-BOOTUI2-NET9-XCODE16-ios15-unsigned.ipa Payload
           )
-          test -s artifacts/WP7-BOOTUI1-ios15-unsigned.ipa
-          shasum -a 256 artifacts/WP7-BOOTUI1-ios15-unsigned.ipa
+          test -s artifacts/WP7-BOOTUI2-NET9-XCODE16-ios15-unsigned.ipa
+          shasum -a 256 artifacts/WP7-BOOTUI2-NET9-XCODE16-ios15-unsigned.ipa
 
       - uses: actions/upload-artifact@v4
         with:
-          name: WP7-BOOTUI1-ios15-unsigned
-          path: artifacts/WP7-BOOTUI1-ios15-unsigned.ipa
+          name: WP7-BOOTUI2-NET9-XCODE16-ios15-unsigned
+          path: artifacts/WP7-BOOTUI2-NET9-XCODE16-ios15-unsigned.ipa
           if-no-files-found: error

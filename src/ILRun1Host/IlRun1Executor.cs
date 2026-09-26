@@ -23,7 +23,7 @@ internal static class IlRun1Executor
         }
 
         Emit("[ILRUN1][START]");
-        Emit("[ILRUN1][BUILD] ILRUN1-IOS2-PERSISTLOG]");
+        Emit("[ILRUN1][BUILD] ILRUN1-NET9-INTERP1");
         Emit($"[ILRUN1][LOG_DIR] {AppLog.LogDirectory ?? "<unavailable>"}");
         Emit($"[ILRUN1][RUNTIME] {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}");
         Emit($"[ILRUN1][OS] {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");

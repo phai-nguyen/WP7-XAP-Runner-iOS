@@ -32,7 +32,7 @@ public class AppDelegate : UIApplicationDelegate
 
             var status = new UILabel(new CGRect(24, 145, Window.Bounds.Width - 48, 150))
             {
-                Text = "ILRUN1-NET9-INTERP1\nUIKit host PASS\nPreparing external managed IL probe…",
+                Text = "ILRUN1-NET9-PAYLOAD2\nUIKit host PASS\nTesting external managed IL…",
                 TextColor = UIColor.White,
                 Font = UIFont.SystemFontOfSize(17),
                 TextAlignment = UITextAlignment.Center,

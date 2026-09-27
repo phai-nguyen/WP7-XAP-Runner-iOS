@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 3088)
+Total output lines: 223
+
 using System.Reflection;
 using Wp7Binding;
 
@@ -11,6 +14,9 @@ Run(nameof(NoNameOnlyFallback), NoNameOnlyFallback);
 Run(nameof(FormatterEscapesNewlinesAndKeepsOneMarkerPerLine), FormatterEscapesNewlinesAndKeepsOneMarkerPerLine);
 Run(nameof(FormatterEmitsRequestRedirectResolveAndMissingMarkers), FormatterEmitsRequestRedirectResolveAndMissingMarkers);
 Run(nameof(UnresolvedIdentityProducesBindFailAndEndMarkers), UnresolvedIdentityProducesBindFailAndEndMarkers);
+Run(nameof(UnrelatedProbeFailuresAreNotCompatibilityBoundaries), UnrelatedProbeFailuresAreNotCompatibilityBoundaries);
+Run(nameof(MissingAssemblyReportsTheActualRequestedIdentity), MissingAssemblyReportsTheActualRequestedIdentity);
+Run(nameof(MissingTypeAndMemberDoNotInventEntryAssemblyAttribution), MissingTypeAndMemberDoNotInventEntryAssemblyAttribution);
 return failures == 0 ? 0 : 1;
 
 void Run(string name, Action test)
@@ -109,16 +115,7 @@ static void NoNameOnlyFallback()
 
     var result = resolver.Resolve(ToAssemblyName(request));
 
-    Require(result.Target is null, "same name with different version must not bind");
-}
-
-static void FormatterEscapesNewlinesAndKeepsOneMarkerPerLine()
-{
-    var identity = Identity("Legacy\r\n.Contract", new Version(1, 2, 3, 4), "neutral", "null");
-    var lines = new[]
-    {
-        BindingLogFormatter.FormatRequest(identity),
-        BindingLogFormatter.FormatRedirect(identity, Identity("Compat.Contract", new Version(1, 0, 0, 0), "neutral", "null"), "redirect\r\nreason"),
+    Re…88 tokens truncated…ter.FormatRedirect(identity, Identity("Compat.Contract", new Version(1, 0, 0, 0), "neutral", "null"), "redirect\r\nreason"),
         BindingLogFormatter.FormatResolve(identity, identity, "package\r\nsource"),
         BindingLogFormatter.FormatMissingType("Ns.Type\r\nName", "Legacy.Contract"),
         BindingLogFormatter.FormatMissingMember("Run\r\nNow", "Ns.Type", "Legacy.Contract")
@@ -167,6 +164,44 @@ static void UnresolvedIdentityProducesBindFailAndEndMarkers()
     Require(!bindFail.Contains('\r') && !bindFail.Contains('\n'), "exception data must stay on one marker line");
     Require(bindFail.Contains("\\r\\ndetails", StringComparison.Ordinal), "exception newlines must be escaped");
     Require(string.CompareOrdinal(bindFail, end) < 0, "bind failure must precede the end marker");
+}
+
+static void UnrelatedProbeFailuresAreNotCompatibilityBoundaries()
+{
+    Require(Bind1ExceptionClassifier.Classify(new BadImageFormatException("invalid assembly image")) is null,
+        "invalid assembly bytes must not count as a diagnosed missing dependency");
+    Require(Bind1ExceptionClassifier.Classify(new InvalidOperationException("unexpected probe failure")) is null,
+        "unclassified runtime errors must not count as diagnosed compatibility boundaries");
+}
+
+static void MissingAssemblyReportsTheActualRequestedIdentity()
+{
+    var exception = new FileNotFoundException(
+        "Could not load dependency.",
+        "Dependency.Contract, Version=2.3.4.5, Culture=neutral, PublicKeyToken=0102030405060708");
+    var result = Bind1ExceptionClassifier.Classify(exception);
+
+    Require(result is not null, "a missing assembly with a complete requested identity is a compatibility boundary");
+    Require(result.Marker.Contains("name=Dependency.Contract", StringComparison.Ordinal), "marker must identify the requested dependency");
+    Require(result.Marker.Contains("version=2.3.4.5", StringComparison.Ordinal), "marker must preserve the requested version");
+    Require(!result.Marker.Contains("name=Aleterated", StringComparison.Ordinal), "marker must not substitute the entry assembly");
+}
+
+static void MissingTypeAndMemberDoNotInventEntryAssemblyAttribution()
+{
+    var missingType = Bind1ExceptionClassifier.Classify(new TypeLoadException(
+        "Could not load referenced dependency type.", "Dependency.Namespace.Widget"));
+    var missingMember = Bind1ExceptionClassifier.Classify(new MissingMemberException(
+        "Dependency.Namespace.Widget.Render is missing."));
+
+    Require(missingType is not null && missingType.Marker.Contains("type=Dependency.Namespace.Widget", StringComparison.Ordinal),
+        "type marker must preserve the actual missing type");
+    Require(missingType!.Marker.Contains("assembly=unknown", StringComparison.Ordinal),
+        "type marker must not claim the entry assembly when the declaring assembly is unknown");
+    Require(missingMember is not null && missingMember.Marker.Contains("type=unknown assembly=unknown", StringComparison.Ordinal),
+        "member marker must leave unproven declaring metadata unknown");
+    Require(missingMember!.Marker.Contains("Dependency.Namespace.Widget.Render is missing.", StringComparison.Ordinal),
+        "member marker must preserve exception details rather than fabricate an entry member");
 }
 
 static AssemblyIdentity Identity(string name, Version version, string culture, string publicKeyToken) =>

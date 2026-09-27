@@ -1,6 +1,8 @@
 # Kế hoạch triển khai BIND1 — Probe liên kết assembly WP7
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.\n\n**Mục tiêu:** Nạp assembly Aleterated WP7/XNA gốc trong host iOS, ghi nhận chính xác kết quả liên kết assembly và báo ranh giới tương thích đầu tiên mà không crash.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Mục tiêu:** Nạp assembly Aleterated WP7/XNA gốc trong host iOS, ghi nhận chính xác kết quả liên kết assembly và báo ranh giới tương thích đầu tiên mà không crash.
 
 **Kiến trúc:** Tạo thư viện resolver .NET độc lập UIKit để so khớp identity chính xác, giải quyết assembly trong gói và áp dụng redirect tường minh. Workflow CI lấy XAP Aleterated theo pin hiện có, kiểm tra SHA-256, đóng gói như tài nguyên thô; host iOS dùng resolver khi dò entry type và ghi log BIND1. Giữ nguyên đường ILRUN1 và không triển khai XNA.
 

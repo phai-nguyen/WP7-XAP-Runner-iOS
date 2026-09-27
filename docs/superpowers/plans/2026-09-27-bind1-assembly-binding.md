@@ -59,7 +59,7 @@
 - `AssemblyIdentity.FromAssemblyName(AssemblyName name)` chuẩn hóa name, version, culture (`neutral` khi rỗng) và public-key token (`null` khi rỗng).
 - `PackageAssembly(AssemblyIdentity Identity, string EntryPath, byte[] Image)` biểu diễn một assembly trong gói. `PackageAssemblyCatalog.TryGetExact(AssemblyIdentity identity, out PackageAssembly assembly)` chỉ thành công khi cả bốn trường khớp; so sánh name/culture không phân biệt hoa thường, version/token chính xác.
 - `BindingResolution(AssemblyIdentity Requested, PackageAssembly? Target, string? Source, string? RedirectReason)` biểu diễn quyết định. `AssemblyBindingResolver.Resolve(AssemblyName requested)` trả nguồn `package|compat` khi tìm thấy; nếu không, target/source là null để host trả `null` cho runtime. Resolver nhận catalog và bảng redirect được inject lúc khởi tạo.
-- `BindingLogFormatter.FormatRequest(AssemblyIdentity)`, `FormatRedirect(AssemblyIdentity from, AssemblyIdentity to, string reason)`, `FormatResolve(AssemblyIdentity requested, AssemblyIdentity resolved, string source)`, `FormatBindFail(AssemblyIdentity requested, string exception)`, `FormatMissingType(string type, string assembly)`, `FormatMissingMember(string member, string type, string assembly)` và `FormatEnd(bool passed)` đều trả về `string`, đúng một marker mỗi dòng; CR/LF được escape.
+- `BindingLogFormatter.FormatRequest(AssemblyIdentity)`, `FormatRedirect(AssemblyIdentity from, AssemblyIdentity to, string reason)`, `FormatResolve(AssemblyIdentity requested, AssemblyIdentity resolved, string source)`, `FormatMissingType(string type, string assembly)` và `FormatMissingMember(string member, string type, string assembly)` trả về marker `[BIND1][REQUEST]`, `[BIND1][REDIRECT]`, `[BIND1][RESOLVE_OK]`, `[BIND1][MISSING_TYPE]`, `[BIND1][MISSING_MEMBER]`. Mỗi phương thức trả về một dòng và escape CR/LF. Task 3 bổ sung `FormatBindFail(AssemblyIdentity requested, string exception)` và `FormatEnd(bool passed)` cho marker `[BIND1][ASSEMBLY_BIND_FAIL]` và `[BIND1][END]`.
 
 - [ ] **Bước 1: Viết test đỏ cho so khớp identity**
   Trong `Program.cs`, thêm `IdentityRequiresExactVersionCultureAndToken()`: cùng identity phải khớp; thay lần lượt version, culture hoặc token thì không khớp.
@@ -125,7 +125,7 @@
 - Marker cuối `[BIND1][END] PASS` chỉ khi entry/type và bước kiểm tra tối thiểu hoàn tất không thiếu binding; nếu phát hiện boundary chưa hỗ trợ thì kết thúc `[BIND1][END] FAIL` nhưng không crash. Cả hai trường hợp vẫn lưu log.
 
 - [ ] **Bước 1: Viết test đỏ cho kết quả probe và marker**
-  Thêm test `UnresolvedIdentityProducesBindFailAndEndMarkers()`: identity không có trong catalog tạo quyết định unresolved, formatter phát `ASSEMBLY_BIND_FAIL` rồi `END FAIL`, và dữ liệu có newline vẫn chỉ chiếm một log line.
+  Thêm test `UnresolvedIdentityProducesBindFailAndEndMarkers()`: identity không có trong catalog tạo quyết định unresolved, formatter phát `[BIND1][ASSEMBLY_BIND_FAIL]` rồi `[BIND1][END] FAIL`, và dữ liệu có newline vẫn chỉ chiếm một log line.
 - [ ] **Bước 2: Chạy test để xác nhận thất bại**
   Chạy lệnh Task 1; kỳ vọng FAIL vì probe/formatter chưa cung cấp contract hoàn chỉnh.
 - [ ] **Bước 3: Thêm nạp XAP và catalog từ manifest scanner**

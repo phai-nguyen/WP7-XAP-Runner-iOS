@@ -1266,7 +1266,7 @@ The user requested sequential names for test builds. These labels are **outside 
 - The IPA filename inside the artifact is `WP7-ILRUN1-V6-ios15-unsigned.ipa`.
 - The app's displayed experiment marker remains `ILRUN1-NET9-ROOTSR`.
 - `ApplicationVersion` and `ApplicationDisplayVersion` are unchanged.
-- BIND1 advanced the external label to **V7**; the workflow validates `V[0-9]+` and defaults to V7. The label remains outside the app.
+- BIND1's first build used **V7**; after review corrections, the current device-test build is **V8**. The workflow validates `V[0-9]+` and defaults to V8. The label remains outside the app.
 
 The label is validated as `V` followed by digits and does not alter the binary's app identity/version.
 
@@ -1289,11 +1289,13 @@ The V6 test build completed on a physical iPhone running iOS 18.7 on 2026-09-27.
 This supersedes the earlier ROOTSR device-test-pending gate in sections 29–30. BIND1 is now the active milestone. The BIND1 direction uses the existing pinned MIT-licensed Aleterated WP7/XNA fixture solely as a real assembly-binding probe; it does not include XNA Graphics or game-loop implementation. The design spec is committed at `docs/superpowers/specs/2026-09-27-bind1-assembly-binding-design.md` and was approved by the user. Implementation/build status is recorded in section 33.
 
 
-## 33. BIND1 V7 build result — GREEN, device test pending
+## 33. BIND1 V7 initial build — GREEN, superseded before device test
 
 BIND1 now includes a pure .NET resolver with exact name/version/culture/public-key-token matching, explicit redirects only to present package assemblies, stable one-line log markers, and a separate on-device probe button. The host loads the pinned Aleterated XAP as raw bytes and reports its first unresolved assembly/type/member boundary; this is a diagnostic probe, not XNA/game support.
 
 Baseline remains .NET 9.0.303, Microsoft.iOS 18.5.9207, Xcode 16.4, iOS SDK 18.5, minimum iOS 15.0, primary test iOS 18.7.
+
+This first BIND1 build passed CI, but an independent code review then found that unclassified runtime exceptions could be reported as successfully diagnosed boundaries and that some fallback markers attributed unknown dependencies to `Aleterated`. Do **not** use V7 for the BIND1 device probe. The corrected classifier now reports unexpected failures as `[BIND1][PROBE_FAIL]` without diagnostic success, and keeps unknown declaring identity/type as `unknown` while preserving exception details. V8 below contains those corrections.
 
 GitHub Actions:
 
@@ -1309,7 +1311,27 @@ GitHub Actions:
 
 Verification passed before upload: 9/9 resolver tests, four fixture-contract tests, pinned XAP SHA-256 and XAPSCAN1 report contract, ILRUN1 raw-payload contract, iOS publish, and IPA content/Info.plist checks. This is build evidence only; it is **not** an on-device BIND1 result.
 
-### Next: test V7 on iPhone iOS 18.7
+V7 was not tested on device; use only the corrected V8 artifact in section 34.
+
+## 34. BIND1 V8 corrected build — GREEN, device test pending
+
+The post-review V8 artifact contains the corrected exception classifier. A missing assembly is only counted as a compatibility boundary when a requested assembly identity is available; TypeLoad/MissingMember diagnostics preserve exception details and do not invent a declaring assembly/type; other runtime/probe failures emit `[BIND1][PROBE_FAIL]` and leave diagnostic success false.
+
+GitHub Actions:
+
+- Run: `36327963351` — **SUCCESS / BUILD GREEN**
+- Run URL: https://github.com/phai-nguyen/WP7-XAP-Runner-iOS/actions/runs/36327963351
+- Branch/commit: `codex/bind1-v7` / `d1a25937d841821d950852ca5b9138a4e56a22b3`
+- Artifact: `WP7-BIND1-V8-ios15-unsigned`
+- Artifact ID: `10934104937`
+- Artifact digest: `sha256:f4cb9d5ee0cc1cdb09afa1d329fa4f1da8c4a2d96d48fb076a3c5c68d9c2618b`
+- IPA SHA-256: `f78f6c08f863558e74a584b27bf25498bb7cf356ff76f6368d2301a2a0394d92`
+- IPA includes the app executable, raw `IlPayload.dll`, `Aleterated.xap`, and `Aleterated.xapscan1.json`; minimum iOS is 15.0.
+- App identity/display metadata remains unchanged: `WP7 ILRUN1`, `com.phai.wp7.ilrun1`, version `1`, display version `0.1`. V8 is only the external workflow/artifact/IPA label.
+
+Verification: GitHub Actions core run `36327963299` passed all 12 resolver/classifier tests on .NET SDK 9.0.303. The V8 iOS workflow passed the fixture report contract, pinned XAP SHA/report validation, raw-resource checks, iOS publish, app metadata/minimum iOS checks, and IPA content checks. This is build evidence only, not an on-device BIND1 result.
+
+### Next: test V8 on iPhone iOS 18.7
 
 Install the unsigned IPA using the usual ESign flow. Let the existing ILRUN1 startup check finish, then tap **BIND1 Probe**. Confirm the app remains visible; then send the newest `WP7Runner_TakeThis.log` and `WP7Runner_Persistent.log` (or a screenshot showing the BIND1 log panel).
 
@@ -1318,7 +1340,7 @@ Look for `[BIND1][REQUEST]` followed by the first real `[BIND1][RESOLVE_OK]`, `[
 Current gate:
 
 ```text
-BIND1 V7 CI/build                 GREEN
-BIND1 V7 iOS 18.7 device probe    WAITING FOR USER TEST/LOGS
+BIND1 V8 CI/build                 GREEN
+BIND1 V8 iOS 18.7 device probe    WAITING FOR USER TEST/LOGS
 WP7/XNA game execution            NOT CLAIMED
 ```

@@ -23,7 +23,7 @@
 ## Điểm cần rà soát khi review
 
 - Sai khác version, culture hoặc public-key token không được phân giải nhầm: Task 1 kiểm thử exact identity và trường hợp token/culture/version khác.
-- Redirect không có đích, sai đích hoặc vòng lặp không được báo thành công: Task 1 kiểm thử redirect hợp lệ và từ chối target không tồn tại.
+- Redirect không có đích hoặc sai đích không được báo thành công: Task 1 kiểm thử redirect hợp lệ, target không tồn tại và không fallback theo tên.
 - XAP thiếu, sai hash hoặc thiếu entry assembly phải cho kết quả lỗi xác định: Task 2 kiểm thử fixture validation; Task 3 kiểm thử marker lỗi.
 - Giá trị identity có newline/ký tự phân cách không được làm vỡ định dạng log: Task 1 kiểm thử formatter luôn tạo một dòng.
 - Dependency/type/member không có phải được báo đúng boundary và host vẫn lưu log: Task 3 kiểm thử lỗi có kiểm soát; thiết bị xác minh app còn hoạt động.
@@ -61,7 +61,7 @@
 - `AssemblyIdentity.FromAssemblyName(AssemblyName name)` chuẩn hóa name, version, culture (`neutral` khi rỗng) và public-key token (`null` khi rỗng).
 - `PackageAssembly(AssemblyIdentity Identity, string EntryPath, byte[] Image)` biểu diễn một assembly trong gói. `PackageAssemblyCatalog.TryGetExact(AssemblyIdentity identity, out PackageAssembly assembly)` chỉ thành công khi cả bốn trường khớp; so sánh name/culture không phân biệt hoa thường, version/token chính xác.
 - `BindingResolution(AssemblyIdentity Requested, PackageAssembly? Target, string? Source, string? RedirectReason)` biểu diễn quyết định. `AssemblyBindingResolver.Resolve(AssemblyName requested)` trả nguồn `package|compat` khi tìm thấy; nếu không, target/source là null để host trả `null` cho runtime. Resolver nhận catalog và bảng redirect được inject lúc khởi tạo.
-- `BindingLogFormatter.FormatRequest(AssemblyIdentity)`, `FormatRedirect(AssemblyIdentity from, AssemblyIdentity to, string reason)`, `FormatResolve(AssemblyIdentity requested, AssemblyIdentity resolved, string source)`, `FormatBindFail(AssemblyIdentity requested, string exception)` và `FormatEnd(bool passed)` đều trả về `string`, đúng một marker mỗi dòng; CR/LF được escape.
+- `BindingLogFormatter.FormatRequest(AssemblyIdentity)`, `FormatRedirect(AssemblyIdentity from, AssemblyIdentity to, string reason)`, `FormatResolve(AssemblyIdentity requested, AssemblyIdentity resolved, string source)`, `FormatBindFail(AssemblyIdentity requested, string exception)`, `FormatMissingType(string type, string assembly)`, `FormatMissingMember(string member, string type, string assembly)` và `FormatEnd(bool passed)` đều trả về `string`, đúng một marker mỗi dòng; CR/LF được escape.
 
 - [ ] **Bước 1: Viết test đỏ cho so khớp identity**
   Trong `Program.cs`, thêm `IdentityRequiresExactVersionCultureAndToken()`: cùng identity phải khớp; thay lần lượt version, culture hoặc token thì không khớp.

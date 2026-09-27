@@ -27,6 +27,17 @@ public sealed class AssemblyBindingResolver
         if (_catalog.TryGetExact(identity, out var packageAssembly))
             return new BindingResolution(identity, packageAssembly, "package", null);
 
+        foreach (var redirect in _redirects)
+        {
+            if (!AssemblyIdentityComparer.Instance.Equals(redirect.Key, identity))
+                continue;
+
+            if (_catalog.TryGetExact(redirect.Value, out var redirectedAssembly))
+                return new BindingResolution(identity, redirectedAssembly, "compat", "configured redirect");
+
+            break;
+        }
+
         return new BindingResolution(identity, null, null, null);
     }
 }

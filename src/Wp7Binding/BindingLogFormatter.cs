@@ -11,11 +11,13 @@ public static class BindingLogFormatter
     public static string FormatResolve(AssemblyIdentity requested, AssemblyIdentity resolved, string source) =>
         $"[BIND1][RESOLVE_OK] requested=({FormatIdentity(requested)}) resolved=({FormatIdentity(resolved)}) source={Escape(source)}";
 
-    public static string FormatMissingType(string type, string assembly) =>
-        $"[BIND1][MISSING_TYPE] type={Escape(type)} assembly={Escape(assembly)}";
+    public static string FormatMissingType(string type, string assembly, string? detail = null) =>
+        $"[BIND1][MISSING_TYPE] type={Escape(type)} assembly={Escape(assembly)}" +
+        (detail is null ? string.Empty : $" detail={Escape(detail)}");
 
-    public static string FormatMissingMember(string member, string type, string assembly) =>
-        $"[BIND1][MISSING_MEMBER] member={Escape(member)} type={Escape(type)} assembly={Escape(assembly)}";
+    public static string FormatMissingMember(string member, string type, string assembly, string? detail = null) =>
+        $"[BIND1][MISSING_MEMBER] member={Escape(member)} type={Escape(type)} assembly={Escape(assembly)}" +
+        (detail is null ? string.Empty : $" detail={Escape(detail)}");
 
     public static string FormatBindFail(AssemblyIdentity requested, string exception) =>
         $"[BIND1][ASSEMBLY_BIND_FAIL] requested=({FormatIdentity(requested)}) exception={Escape(exception)}";

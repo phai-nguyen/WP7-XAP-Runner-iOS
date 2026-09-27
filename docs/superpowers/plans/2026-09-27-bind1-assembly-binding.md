@@ -38,7 +38,7 @@
 - Tạo `src/Wp7Binding/AssemblyBindingResolver.cs`: exact match, redirect và quyết định fallback.
 - Tạo `src/Wp7Binding/BindingLogFormatter.cs`: định dạng marker BIND1 an toàn theo dòng.
 - Tạo `tests/Wp7Binding.Tests/Wp7Binding.Tests.csproj` và `tests/Wp7Binding.Tests/Program.cs`: bộ kiểm thử console không cần UIKit hoặc NuGet ngoài.
-- Sửa: `tests/assert-real-wp7-xna.py`: mở rộng contract hiện có để xác nhận path và identity của entry assembly dùng bởi BIND1.
+- Sửa: `tests/assert-real-wp7-xna.py`: mở rộng contract fixture và tách hàm kiểm tra để test được.\n- Tạo: `tests/test_real_wp7_xna_contract.py`: regression test report hợp lệ và identity bị thiếu.
 - Sửa `.github/workflows/wp7-ilrun1-ios.yml`: tải/kiểm tra fixture, đóng gói XAP và report làm raw bundle resource; build artifact BIND1 với nhãn V7.
 - Sửa `tests/assert-ilrun1-interpreter-config.py`: chỉ cấm tham chiếu tĩnh tới payload IlPayload; cho phép tham chiếu thư viện resolver BIND1.
 - Sửa `src/ILRun1Host/ILRun1Host.csproj`: tham chiếu thư viện resolver và khai báo tài nguyên XAP/report; giữ nguyên cấu hình interpreter/trimmer.

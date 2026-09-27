@@ -128,7 +128,7 @@
 - Marker cuối `[BIND1][END] PASS` chỉ khi entry/type và bước kiểm tra tối thiểu hoàn tất không thiếu binding; nếu phát hiện boundary chưa hỗ trợ thì kết thúc `[BIND1][END] FAIL` nhưng không crash. Cả hai trường hợp vẫn lưu log.
 
 - [ ] **Bước 1: Viết test đỏ cho kết quả probe và marker**
-  Thêm test `ProbeFailureIsControlledAndEndsWithFailMarker()` cho lỗi asset thiếu, bind fail, missing type và missing member; xác minh log có END chính xác và không chứa stack trace fatal ngoài dự kiến.
+  Thêm test `UnresolvedIdentityProducesBindFailAndEndMarkers()`: identity không có trong catalog tạo quyết định unresolved, formatter phát `ASSEMBLY_BIND_FAIL` rồi `END FAIL`, và dữ liệu có newline vẫn chỉ chiếm một log line.
 - [ ] **Bước 2: Chạy test để xác nhận thất bại**
   Chạy lệnh Task 1; kỳ vọng FAIL vì probe/formatter chưa cung cấp contract hoàn chỉnh.
 - [ ] **Bước 3: Thêm nạp XAP và catalog từ manifest scanner**

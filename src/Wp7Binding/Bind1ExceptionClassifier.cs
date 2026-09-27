@@ -32,10 +32,10 @@ public static class Bind1ExceptionClassifier
                 $"{exception.GetType().Name}: {exception.Message}"));
         }
 
-        if (exception is TypeLoadException typeFailure && !string.IsNullOrWhiteSpace(typeFailure.TypeName))
+        if (exception is TypeLoadException typeFailure)
         {
             return new Bind1ExceptionClassification(BindingLogFormatter.FormatMissingType(
-                typeFailure.TypeName,
+                string.IsNullOrWhiteSpace(typeFailure.TypeName) ? "unknown" : typeFailure.TypeName,
                 "unknown",
                 typeFailure.Message));
         }

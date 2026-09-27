@@ -1,8 +1,6 @@
 # Kế hoạch triển khai BIND1 — Probe liên kết assembly WP7
 
-> **Dành cho agent triển khai:** BẮT BUỘC dùng tiểu kỹ năng `superpowers:subagent-driven-development` (khuyến nghị) hoặc `superpowers:executing-plans` để thực hiện kế hoạch theo từng task. Các bước dùng cú pháp checkbox `- [ ]`.
-
-**Mục tiêu:** Nạp assembly Aleterated WP7/XNA gốc trong host iOS, ghi nhận chính xác kết quả liên kết assembly và báo ranh giới tương thích đầu tiên mà không crash.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.\n\n**Mục tiêu:** Nạp assembly Aleterated WP7/XNA gốc trong host iOS, ghi nhận chính xác kết quả liên kết assembly và báo ranh giới tương thích đầu tiên mà không crash.
 
 **Kiến trúc:** Tạo thư viện resolver .NET độc lập UIKit để so khớp identity chính xác, giải quyết assembly trong gói và áp dụng redirect tường minh. Workflow CI lấy XAP Aleterated theo pin hiện có, kiểm tra SHA-256, đóng gói như tài nguyên thô; host iOS dùng resolver khi dò entry type và ghi log BIND1. Giữ nguyên đường ILRUN1 và không triển khai XNA.
 
@@ -82,34 +80,33 @@
 ### Task 2: Xác thực và đóng gói fixture thật trong CI
 
 **Files:**
-- Tạo: `tests/validate-bind1-fixture.py`
+- Sửa: `tests/assert-real-wp7-xna.py`
+- Tạo: `tests/test_real_wp7_xna_contract.py`
 - Sửa: `.github/workflows/wp7-ilrun1-ios.yml`
 - Sửa: `tests/assert-ilrun1-interpreter-config.py`
 - Sửa: `src/ILRun1Host/ILRun1Host.csproj`
 
 **Giao diện:**
-- Script nhận đường dẫn XAP và JSON report: `python3 tests/validate-bind1-fixture.py <xap> <report>`.
-- Script xác nhận SHA-256 fixture là `69bd93627f4fa2c567748e36c3487c083db95c0efe01ef203bf60179bf9342a1`, runtime 3.0, entry `Aleterated.Game1`, runtime type XNA, và có assembly managed entry IL-only.
-- Workflow dùng URL/commit pin hiện có của fixture; scanner sinh report; XAP và report được đặt trong bundle dưới logical names `Aleterated.xap` và `Aleterated.xapscan1.json`.
-- Tài nguyên XAP/report là file dữ liệu thô; không đưa assembly Aleterated thành `ProjectReference` hay `Reference`.
+- `validate_report(report: dict) -> None` trong assertion script xác nhận SHA-256 package, runtime/entry type, entry path, version/culture/public-key token, IL-only và entry/type resolution.
+- Workflow lấy fixture qua URL/commit pin hiện có; scanner tạo JSON report. XAP và report được đặt trong bundle dưới logical names `Aleterated.xap` và `Aleterated.xapscan1.json`.
+- Fixture/report là tài nguyên dữ liệu thô; không đưa Aleterated assembly thành `ProjectReference` hay `Reference`.
 
-- [ ] **Bước 1: Viết test đỏ cho fixture validator**
-  Tạo test Python gọi script với report mẫu: đúng SHA/entry phải qua; sai hash và sai entry phải thất bại với thông báo tương ứng.
-- [ ] **Bước 2: Chạy test validator để xác nhận thất bại**
-  Chạy `python3 -m unittest tests/test_validate_bind1_fixture.py -v`.
-  Kỳ vọng: FAIL vì validator chưa được tạo.
-- [ ] **Bước 3: Cài đặt validator và kiểm tra fixture thật**
-  Đọc JSON scanner theo schema hiện có; kiểm tra package SHA, AppManifest, entry resolution và thuộc tính assembly IL-only. Thêm fixture report nhỏ trong test, không thêm XAP/DLL nhị phân.
-- [ ] **Bước 4: Chạy test validator**
-  Chạy `python3 -m unittest tests/test_validate_bind1_fixture.py -v`; kỳ vọng PASS cho report hợp lệ và hai report lỗi.
-- [ ] **Bước 5: Thêm bước lấy fixture, scan và validate vào workflow**
-  Dùng URL pinned hiện có, tính SHA-256, chạy XapScan, validator; chỉ sau khi hợp lệ mới copy XAP/report vào `src/ILRun1Host/Assets`.
-- [ ] **Bước 6: Cập nhật invariant ILRUN1 và tài nguyên host**
-  Sửa assertion để cấm `IlPayload.dll` static reference cụ thể nhưng cho phép project reference resolver; thêm tài nguyên raw XAP/report. Giữ nguyên `MtouchInterpreter=all`, `TrimmerRootAssembly System.Runtime`, iOS 15 và raw ILRUN1 payload.
-- [ ] **Bước 7: Chạy toàn bộ kiểm tra CI liên quan**
-  Chạy `python3 tests/assert-ilrun1-interpreter-config.py`, `python3 tests/assert-real-wp7-xna.py <report>`, `python3 -m unittest tests/test_validate_bind1_fixture.py -v`; kỳ vọng tất cả PASS.
+- [ ] **Bước 1: Viết test đỏ cho schema entry identity**
+  Trong `tests/test_real_wp7_xna_contract.py`, dùng `runpy.run_path()` để lấy hàm validator; thêm `test_rejects_entry_without_public_key_token_field()` với report hợp lệ tối thiểu nhưng thiếu trường token.
+- [ ] **Bước 2: Chạy test để xác nhận thất bại**
+  Chạy `python3 -m unittest tests/test_real_wp7_xna_contract.py -v`; kỳ vọng FAIL vì hàm `validate_report` chưa tồn tại.
+- [ ] **Bước 3: Tách assertion thành hàm và bổ sung contract**
+  Thêm `validate_report(report: dict) -> None`; giữ nguyên SHA-256 `69bd93627f4fa2c567748e36c3487c083db95c0efe01ef203bf60179bf9342a1`, runtime 3.0, entry `Aleterated.Game1`, XNA AssemblyRef checks; bổ sung path/version/culture/token/IL-only entry. CLI đọc JSON và gọi hàm này.
+- [ ] **Bước 4: Hoàn tất test hợp lệ và lỗi**
+  Thêm `test_accepts_pinned_entry_identity()`; chạy unittest. Kỳ vọng report hợp lệ PASS và report thiếu token FAIL. Script CLI cũng phải PASS với report fixture thật do workflow tạo.
+- [ ] **Bước 5: Lấy, quét và đóng gói fixture trong workflow**
+  Dùng URL pinned hiện có, chạy XapScan, assertion script; sau khi contract PASS mới copy XAP/report vào `src/ILRun1Host/Assets`.
+- [ ] **Bước 6: Giữ invariant ILRUN1 và khai báo tài nguyên**
+  Sửa assertion để cấm static reference tới `IlPayload.dll` nhưng cho phép project reference resolver; thêm raw XAP/report resources. Giữ nguyên interpreter/trimmer, minimum iOS 15 và raw payload ILRUN1.
+- [ ] **Bước 7: Chạy kiểm tra liên quan**
+  Chạy `python3 tests/assert-ilrun1-interpreter-config.py`, `python3 -m unittest tests/test_real_wp7_xna_contract.py -v`, và assertion scanner trên report thật; kỳ vọng tất cả PASS.
 - [ ] **Bước 8: Commit fixture pipeline**
-  Commit workflow, validator, tests và project resources với thông điệp `ci: package pinned WP7 fixture for BIND1`.
+  Commit workflow, assertion update, tests và resource contract với thông điệp `ci: package pinned WP7 fixture for BIND1`.
 
 ### Task 3: Probe runtime, log và UI trên iOS
 
@@ -153,19 +150,19 @@
 - Sửa sau khi có kết quả: `docs/handoff/CURRENT.md`
 
 - [ ] **Bước 1: Cập nhật nhãn build ngoài ứng dụng**
-  Đổi nhãn mặc định workflow sang V7 cho push và dispatch, validate dạng `V[0-9]+`, đặt tên run/artifact/IPA theo `WP7-BIND1-V7-ios15-unsigned`. Xác minh app version và display name không thay đổi.
+  Đổi nhãn mặc định workflow sang V7 cho push và dispatch; validate dạng `V[0-9]+`; đặt tên run/artifact/IPA theo `WP7-BIND1-V7-ios15-unsigned`. Xác minh app version và display name không thay đổi.
 - [ ] **Bước 2: Bổ sung kiểm tra artifact**
   Workflow xác minh IPA chứa host executable, raw ILRUN1 payload, Aleterated XAP và report; kiểm tra minimum iOS 15.0.
-- [ ] **Bước 3: Chạy đầy đủ test trước khi phát hành**
-  Chạy test resolver, fixture validator, hai assertion scanner/ILRUN1 và publish iOS; kỳ vọng mọi bước thành công trước khi upload IPA.
+- [ ] **Bước 3: Chạy toàn bộ kiểm tra trước khi upload**
+  Chạy test resolver, fixture contract, assertion ILRUN1/scanner và publish iOS; chỉ khi mọi bước qua mới upload IPA.
 - [ ] **Bước 4: Tạo artifact unsigned**
-  Workflow upload IPA với nhãn V7 bên ngoài ứng dụng. Kết quả CI chỉ được ghi là build GREEN, không ghi là device PASS.
-- [ ] **Bước 5: Cập nhật handoff sau khi có bằng chứng**
-  Ghi run/artifact ID, digest, trạng thái build và hướng dẫn thu log; sau khi người dùng thử iPhone iOS 18.7, bổ sung kết quả log riêng. Không tự suy diễn device PASS từ build GREEN.
-- [ ] **Bước 6: Commit cập nhật pipeline/handoff**
-  Commit thay đổi workflow và assertion; cập nhật handoff thành commit riêng sau khi có kết quả thiết bị.
-
----
+  Workflow upload IPA với nhãn V7 bên ngoài ứng dụng. Kết quả CI chỉ ghi là build GREEN, không ghi là device PASS.
+- [ ] **Bước 5: Chờ device test trên iPhone iOS 18.7**
+  Người dùng cài IPA V7, chạy riêng ILRUN1 và BIND1, xác nhận host còn hoạt động và gửi `WP7Runner_TakeThis.log` cùng `WP7Runner_Persistent.log`. Kỳ vọng BIND1 có một trong các chuỗi thật: `[BIND1][REQUEST]`, `[BIND1][RESOLVE_OK]`, `[BIND1][ASSEMBLY_BIND_FAIL]`, `[BIND1][MISSING_TYPE]`, `[BIND1][MISSING_MEMBER]`, kết thúc bằng `[BIND1][END]` và có `[LOG_SAVED]`.
+- [ ] **Bước 6: Cập nhật handoff theo bằng chứng**
+  Ghi run/artifact ID, digest, trạng thái build và kết quả log thiết bị; không suy diễn device PASS từ build GREEN.
+- [ ] **Bước 7: Commit cập nhật pipeline/handoff**
+  Commit pipeline riêng; cập nhật handoff sau khi có log thật từ thiết bị.
 
 ## Hoàn tất kế hoạch
 

@@ -59,12 +59,12 @@ internal static class Bind1ProbeExecutor
                 case TypeLoadException typeFailure:
                     RecordBoundary(BindingLogFormatter.FormatMissingType(
                         typeFailure.TypeName ?? entryTypeName,
-                        typeFailure.AssemblyName ?? entryIdentity.Name));
+                        entryIdentity.Name));
                     break;
                 case MissingMemberException memberFailure:
                     RecordBoundary(BindingLogFormatter.FormatMissingMember(
-                        memberFailure.MemberName ?? "<unknown>",
-                        memberFailure.ClassName ?? entryTypeName,
+                        memberFailure.Message,
+                        entryTypeName,
                         entryIdentity.Name));
                     break;
                 default:

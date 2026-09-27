@@ -5,6 +5,7 @@ var failures = 0;
 Run(nameof(IdentityRequiresExactVersionCultureAndToken), IdentityRequiresExactVersionCultureAndToken);
 Run(nameof(CatalogNameAndCultureAreCaseInsensitiveButTokenIsExact), CatalogNameAndCultureAreCaseInsensitiveButTokenIsExact);
 Run(nameof(PackageExactMatchPrecedesRedirect), PackageExactMatchPrecedesRedirect);
+Run(nameof(ConfiguredRedirectResolvesPresentTarget), ConfiguredRedirectResolvesPresentTarget);
 Run(nameof(RedirectRequiresPresentTarget), RedirectRequiresPresentTarget);
 Run(nameof(NoNameOnlyFallback), NoNameOnlyFallback);
 return failures == 0 ? 0 : 1;
@@ -78,6 +79,22 @@ static void RedirectRequiresPresentTarget()
     var result = resolver.Resolve(ToAssemblyName(request));
 
     Require(result.Target is null && result.Source is null, "redirect to absent target must remain unresolved");
+}
+
+static void ConfiguredRedirectResolvesPresentTarget()
+{
+    var request = Identity("Legacy.Contract", new Version(1, 2, 3, 4), "neutral", "0102030405060708");
+    var target = Identity("Compat.Contract", new Version(1, 0, 0, 0), "neutral", "null");
+    var catalog = new PackageAssemblyCatalog([new PackageAssembly(target, "Compat.Contract.dll", [2])]);
+    var resolver = new AssemblyBindingResolver(
+        catalog,
+        new Dictionary<AssemblyIdentity, AssemblyIdentity> { [request] = target });
+
+    var result = resolver.Resolve(ToAssemblyName(request));
+
+    Require(result.Target?.Identity == target, "configured redirect must resolve to its exact present target");
+    Require(result.Source == "compat", $"expected compat source, got {result.Source ?? "<null>"}");
+    Require(result.RedirectReason is not null, "configured redirect must report why it redirected");
 }
 
 static void NoNameOnlyFallback()

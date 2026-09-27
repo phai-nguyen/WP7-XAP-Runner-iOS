@@ -3,6 +3,9 @@ using Wp7Binding;
 
 var failures = 0;
 Run(nameof(IdentityRequiresExactVersionCultureAndToken), IdentityRequiresExactVersionCultureAndToken);
+Run(nameof(PackageExactMatchPrecedesRedirect), PackageExactMatchPrecedesRedirect);
+Run(nameof(RedirectRequiresPresentTarget), RedirectRequiresPresentTarget);
+Run(nameof(NoNameOnlyFallback), NoNameOnlyFallback);
 return failures == 0 ? 0 : 1;
 
 void Run(string name, Action test)
@@ -32,6 +35,56 @@ static void IdentityRequiresExactVersionCultureAndToken()
     Require(actual != expected with { Culture = "en-US" }, "culture mismatch must not compare equal");
     Require(actual != expected with { PublicKeyToken = "1111111111111111" }, "public-key token mismatch must not compare equal");
 }
+
+static void PackageExactMatchPrecedesRedirect()
+{
+    var request = Identity("Legacy.Contract", new Version(1, 2, 3, 4), "neutral", "0102030405060708");
+    var redirectTarget = Identity("Compat.Contract", new Version(1, 0, 0, 0), "neutral", "null");
+    var catalog = new PackageAssemblyCatalog(
+    [
+        new PackageAssembly(request, "Legacy.Contract.dll", [1]),
+        new PackageAssembly(redirectTarget, "Compat.Contract.dll", [2])
+    ]);
+    var resolver = new AssemblyBindingResolver(
+        catalog,
+        new Dictionary<AssemblyIdentity, AssemblyIdentity> { [request] = redirectTarget });
+
+    var result = resolver.Resolve(ToAssemblyName(request));
+
+    Require(result.Target?.Identity == request, "exact package match must win over a configured redirect");
+    Require(result.Source == "package", $"expected package source, got {result.Source ?? "<null>"}");
+}
+
+static void RedirectRequiresPresentTarget()
+{
+    var request = Identity("Legacy.Contract", new Version(1, 2, 3, 4), "neutral", "0102030405060708");
+    var absentTarget = Identity("Compat.Contract", new Version(1, 0, 0, 0), "neutral", "null");
+    var resolver = new AssemblyBindingResolver(
+        new PackageAssemblyCatalog([]),
+        new Dictionary<AssemblyIdentity, AssemblyIdentity> { [request] = absentTarget });
+
+    var result = resolver.Resolve(ToAssemblyName(request));
+
+    Require(result.Target is null && result.Source is null, "redirect to absent target must remain unresolved");
+}
+
+static void NoNameOnlyFallback()
+{
+    var request = Identity("Legacy.Contract", new Version(1, 2, 3, 4), "neutral", "0102030405060708");
+    var otherVersion = Identity("Legacy.Contract", new Version(1, 2, 3, 5), "neutral", "0102030405060708");
+    var catalog = new PackageAssemblyCatalog([new PackageAssembly(otherVersion, "Legacy.Contract.dll", [1])]);
+    var resolver = new AssemblyBindingResolver(catalog, new Dictionary<AssemblyIdentity, AssemblyIdentity>());
+
+    var result = resolver.Resolve(ToAssemblyName(request));
+
+    Require(result.Target is null, "same name with different version must not bind");
+}
+
+static AssemblyIdentity Identity(string name, Version version, string culture, string publicKeyToken) =>
+    new(name, version, culture, publicKeyToken);
+
+static AssemblyName ToAssemblyName(AssemblyIdentity identity) =>
+    new($"{identity.Name}, Version={identity.Version}, Culture={identity.Culture}, PublicKeyToken={identity.PublicKeyToken}");
 
 static void Require(bool condition, string message)
 {

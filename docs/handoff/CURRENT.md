@@ -1251,3 +1251,17 @@ The targeted System.Runtime-preservation experiment has built and packaged succe
 The device test should determine whether `System.Runtime` was available to the dynamic payload resolver. Collect the newest `WP7Runner_TakeThis.log` and `WP7Runner_Persistent.log`.
 
 BIND1 remains blocked until a physical iOS 18.7 test produces `[ILRUN1][END] PASS` and `XAP_ILRUN1_PASS:42`.
+
+
+---
+
+## 31. External test labels
+
+The user requested sequential names for test builds. These labels are **outside the app** and identify the GitHub Actions run, artifact, and IPA filename only.
+
+- The current ROOTSR device-test build is labeled **V6**.
+- The app's displayed experiment marker remains `ILRUN1-NET9-ROOTSR`.
+- `ApplicationVersion` and `ApplicationDisplayVersion` are unchanged.
+- Future manual workflow runs accept labels such as `V7`, `V8`, and so on; push-triggered builds default to `V6` unless the workflow default is advanced.
+
+The label is validated as `V` followed by digits and does not alter the binary's app identity/version.

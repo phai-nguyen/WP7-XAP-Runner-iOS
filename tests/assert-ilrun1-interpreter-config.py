@@ -14,3 +14,8 @@ assert "<ProjectReference" not in project and '<Reference Include="IlPayload' no
 assert "[APP][BUILD] ILRUN1-NET9-ROOTSR" in main, "device logs must identify this experiment"
 assert "ILRUN1-NET9-ROOTSR" in app_delegate, "visible UI must identify this experiment"
 print("ILRUN1 interpreter/raw-payload contract: PASS")
+
+assert "run-name: ${{ inputs.test_label || 'V6' }} | WP7 ILRUN1 iOS" in workflow, "workflow run must carry the external test label"
+assert "name: WP7-ILRUN1-${{ inputs.test_label || 'V6' }}-ios15-unsigned" in workflow, "artifact must carry the external test label"
+assert "WP7-ILRUN1-${TEST_LABEL}-ios15-unsigned.ipa" in workflow, "IPA filename must carry the external test label"
+assert "description: External test label; does not change the app version." in workflow, "test label must be distinct from app version"

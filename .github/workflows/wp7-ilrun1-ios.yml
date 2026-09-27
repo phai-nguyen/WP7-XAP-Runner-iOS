@@ -1,4 +1,5 @@
 name: WP7 ILRUN1 iOS
+run-name: ${{ inputs.test_label || 'V6' }} | WP7 ILRUN1 iOS
 
 on:
   push:
@@ -9,10 +10,18 @@ on:
       - 'tests/assert-ilrun1-interpreter-config.py'
       - '.github/workflows/wp7-ilrun1-ios.yml'
   workflow_dispatch:
+    inputs:
+      test_label:
+        description: External test label; does not change the app version.
+        required: true
+        default: V6
+        type: string
 
 jobs:
   ilrun1-ios15:
     runs-on: macos-15
+    env:
+      TEST_LABEL: ${{ inputs.test_label || 'V6' }}
     timeout-minutes: 60
 
     steps:
@@ -21,6 +30,13 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.303'
+
+      - name: Validate external test label
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$TEST_LABEL" =~ ^V[0-9]+$ ]]
+          echo "[TEST][EXTERNAL_LABEL] $TEST_LABEL"
 
       - name: Pin .NET 9 SDK and workload set
         shell: bash
@@ -138,13 +154,13 @@ jobs:
           cp -R "$APP" artifacts/Payload/
           (
             cd artifacts
-            zip -qry WP7-ILRUN1-NET9-ROOTSR-ios15-unsigned.ipa Payload
+            zip -qry WP7-ILRUN1-${TEST_LABEL}-ios15-unsigned.ipa Payload
           )
-          test -s artifacts/WP7-ILRUN1-NET9-ROOTSR-ios15-unsigned.ipa
-          shasum -a 256 artifacts/WP7-ILRUN1-NET9-ROOTSR-ios15-unsigned.ipa
+          test -s artifacts/WP7-ILRUN1-${TEST_LABEL}-ios15-unsigned.ipa
+          shasum -a 256 artifacts/WP7-ILRUN1-${TEST_LABEL}-ios15-unsigned.ipa
 
       - uses: actions/upload-artifact@v4
         with:
-          name: WP7-ILRUN1-NET9-ROOTSR-ios15-unsigned
-          path: artifacts/WP7-ILRUN1-NET9-ROOTSR-ios15-unsigned.ipa
+          name: WP7-ILRUN1-${{ inputs.test_label || 'V6' }}-ios15-unsigned
+          path: artifacts/WP7-ILRUN1-${TEST_LABEL}-ios15-unsigned.ipa
           if-no-files-found: error

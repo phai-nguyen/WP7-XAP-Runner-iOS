@@ -61,7 +61,7 @@
 - `AssemblyIdentity.FromAssemblyName(AssemblyName name)` chuẩn hóa name, version, culture (`neutral` khi rỗng) và public-key token (`null` khi rỗng).
 - `PackageAssembly(AssemblyIdentity Identity, string EntryPath, byte[] Image)` biểu diễn một assembly trong gói. `PackageAssemblyCatalog.TryGetExact(AssemblyIdentity identity, out PackageAssembly assembly)` chỉ thành công khi cả bốn trường khớp; so sánh name/culture không phân biệt hoa thường, version/token chính xác.
 - `BindingResolution(AssemblyIdentity Requested, PackageAssembly? Target, string? Source, string? RedirectReason)` biểu diễn quyết định. `AssemblyBindingResolver.Resolve(AssemblyName requested)` trả nguồn `package|compat` khi tìm thấy; nếu không, target/source là null để host trả `null` cho runtime. Resolver nhận catalog và bảng redirect được inject lúc khởi tạo.
-- `BindingLogFormatter.FormatRequest/FormatRedirect/FormatResolve/FormatBindFail/FormatEnd` trả từng marker trên đúng một dòng, escape CR/LF trong dữ liệu đầu vào.
+- `BindingLogFormatter.FormatRequest(AssemblyIdentity)`, `FormatRedirect(AssemblyIdentity from, AssemblyIdentity to, string reason)`, `FormatResolve(AssemblyIdentity requested, AssemblyIdentity resolved, string source)`, `FormatBindFail(AssemblyIdentity requested, string exception)` và `FormatEnd(bool passed)` đều trả về `string`, đúng một marker mỗi dòng; CR/LF được escape.
 
 - [ ] **Bước 1: Viết test đỏ cho so khớp identity**
   Trong `Program.cs`, thêm `IdentityRequiresExactVersionCultureAndToken()`: cùng identity phải khớp; thay lần lượt version, culture hoặc token thì không khớp.

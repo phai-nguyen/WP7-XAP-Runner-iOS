@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 3088)
-Total output lines: 223
-
 using System.Reflection;
 using Wp7Binding;
 
@@ -115,7 +112,16 @@ static void NoNameOnlyFallback()
 
     var result = resolver.Resolve(ToAssemblyName(request));
 
-    Re…88 tokens truncated…ter.FormatRedirect(identity, Identity("Compat.Contract", new Version(1, 0, 0, 0), "neutral", "null"), "redirect\r\nreason"),
+    Require(result.Target is null, "same name with different version must not bind");
+}
+
+static void FormatterEscapesNewlinesAndKeepsOneMarkerPerLine()
+{
+    var identity = Identity("Legacy\r\n.Contract", new Version(1, 2, 3, 4), "neutral", "null");
+    var lines = new[]
+    {
+        BindingLogFormatter.FormatRequest(identity),
+        BindingLogFormatter.FormatRedirect(identity, Identity("Compat.Contract", new Version(1, 0, 0, 0), "neutral", "null"), "redirect\r\nreason"),
         BindingLogFormatter.FormatResolve(identity, identity, "package\r\nsource"),
         BindingLogFormatter.FormatMissingType("Ns.Type\r\nName", "Legacy.Contract"),
         BindingLogFormatter.FormatMissingMember("Run\r\nNow", "Ns.Type", "Legacy.Contract")
@@ -163,7 +169,6 @@ static void UnresolvedIdentityProducesBindFailAndEndMarkers()
     Require(end == "[BIND1][END] FAIL", $"expected a controlled fail end marker, got {end}");
     Require(!bindFail.Contains('\r') && !bindFail.Contains('\n'), "exception data must stay on one marker line");
     Require(bindFail.Contains("\\r\\ndetails", StringComparison.Ordinal), "exception newlines must be escaped");
-    Require(string.CompareOrdinal(bindFail, end) < 0, "bind failure must precede the end marker");
 }
 
 static void UnrelatedProbeFailuresAreNotCompatibilityBoundaries()
@@ -172,6 +177,8 @@ static void UnrelatedProbeFailuresAreNotCompatibilityBoundaries()
         "invalid assembly bytes must not count as a diagnosed missing dependency");
     Require(Bind1ExceptionClassifier.Classify(new InvalidOperationException("unexpected probe failure")) is null,
         "unclassified runtime errors must not count as diagnosed compatibility boundaries");
+    Require(Bind1ExceptionClassifier.Classify(new FileNotFoundException("missing file without assembly identity")) is null,
+        "a file-not-found exception without a requested assembly identity must not be guessed as a bind failure");
 }
 
 static void MissingAssemblyReportsTheActualRequestedIdentity()
@@ -198,9 +205,9 @@ static void MissingTypeAndMemberDoNotInventEntryAssemblyAttribution()
         "type marker must preserve the actual missing type");
     Require(missingType!.Marker.Contains("assembly=unknown", StringComparison.Ordinal),
         "type marker must not claim the entry assembly when the declaring assembly is unknown");
-    Require(missingMember is not null && missingMember.Marker.Contains("type=unknown assembly=unknown", StringComparison.Ordinal),
+    Require(missingMember is not null && missingMember.Marker.Contains("member=unknown type=unknown assembly=unknown", StringComparison.Ordinal),
         "member marker must leave unproven declaring metadata unknown");
-    Require(missingMember!.Marker.Contains("Dependency.Namespace.Widget.Render is missing.", StringComparison.Ordinal),
+    Require(missingMember!.Marker.Contains("detail=Dependency.Namespace.Widget.Render is missing.", StringComparison.Ordinal),
         "member marker must preserve exception details rather than fabricate an entry member");
 }
 

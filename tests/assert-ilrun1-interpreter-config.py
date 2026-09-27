@@ -19,3 +19,4 @@ assert "run-name: ${{ inputs.test_label || 'V6' }} | WP7 ILRUN1 iOS" in workflow
 assert "name: WP7-ILRUN1-${{ inputs.test_label || 'V6' }}-ios15-unsigned" in workflow, "artifact must carry the external test label"
 assert "WP7-ILRUN1-${TEST_LABEL}-ios15-unsigned.ipa" in workflow, "IPA filename must carry the external test label"
 assert "description: External test label; does not change the app version." in workflow, "test label must be distinct from app version"
+assert "path: artifacts/WP7-ILRUN1-${{ inputs.test_label || 'V6' }}-ios15-unsigned.ipa" in workflow, "upload path must use the workflow label expression"

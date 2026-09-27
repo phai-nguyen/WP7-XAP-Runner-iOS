@@ -3,6 +3,7 @@ using Wp7Binding;
 
 var failures = 0;
 Run(nameof(IdentityRequiresExactVersionCultureAndToken), IdentityRequiresExactVersionCultureAndToken);
+Run(nameof(CatalogNameAndCultureAreCaseInsensitiveButTokenIsExact), CatalogNameAndCultureAreCaseInsensitiveButTokenIsExact);
 Run(nameof(PackageExactMatchPrecedesRedirect), PackageExactMatchPrecedesRedirect);
 Run(nameof(RedirectRequiresPresentTarget), RedirectRequiresPresentTarget);
 Run(nameof(NoNameOnlyFallback), NoNameOnlyFallback);
@@ -53,6 +54,17 @@ static void PackageExactMatchPrecedesRedirect()
 
     Require(result.Target?.Identity == request, "exact package match must win over a configured redirect");
     Require(result.Source == "package", $"expected package source, got {result.Source ?? "<null>"}");
+}
+
+static void CatalogNameAndCultureAreCaseInsensitiveButTokenIsExact()
+{
+    var storedIdentity = Identity("Legacy.Contract", new Version(1, 2, 3, 4), "EN-us", "0102030405060708");
+    var request = Identity("legacy.contract", new Version(1, 2, 3, 4), "en-US", "0102030405060708");
+    var otherToken = request with { PublicKeyToken = "1111111111111111" };
+    var catalog = new PackageAssemblyCatalog([new PackageAssembly(storedIdentity, "Legacy.Contract.dll", [1])]);
+
+    Require(catalog.TryGetExact(request, out _), "name and culture casing must not prevent an exact identity match");
+    Require(!catalog.TryGetExact(otherToken, out _), "public-key token must match exactly");
 }
 
 static void RedirectRequiresPresentTarget()

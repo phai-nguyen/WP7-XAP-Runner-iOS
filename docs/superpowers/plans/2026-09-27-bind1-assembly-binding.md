@@ -75,7 +75,7 @@
 - [ ] **Bước 5: Cài đặt identity/catalog/resolver tối thiểu**
   Thêm các kiểu ở trên; redirect dùng dictionary từ identity nguồn chính xác sang identity target đã có trong catalog. Không thêm redirect mặc định cho XNA.
 - [ ] **Bước 6: Viết và chạy test cho marker an toàn**
-  Thêm `FormatterEscapesNewlinesAndKeepsOneMarkerPerLine()`; xác minh CR/LF bị escape và marker kết quả không chứa newline nội bộ. Chạy lệnh test; kỳ vọng tất cả PASS.
+  Thêm `FormatterEscapesNewlinesAndKeepsOneMarkerPerLine()` và `FormatterEmitsRequestRedirectResolveAndMissingMarkers()`; xác minh các marker REQUEST/REDIRECT/RESOLVE_OK/MISSING_TYPE/MISSING_MEMBER đúng tên, CR/LF bị escape và không tạo newline nội bộ. Chạy lệnh test; kỳ vọng tất cả PASS.
 - [ ] **Bước 7: Commit phần resolver**
   Commit các file Task 1 với thông điệp `feat: add WP7 assembly binding resolver`.
 
@@ -135,7 +135,7 @@
 - [ ] **Bước 4: Nối resolver vào AssemblyResolve và bắt lỗi reflection**
   Ghi REQUEST cho identity từ `ResolveEventArgs.Name`; xử lý chính xác `FileNotFoundException`, `TypeLoadException`, `MissingMemberException` và `ReflectionTypeLoadException` thành marker đầu tiên phù hợp; luôn tháo handler trong finally.
 - [ ] **Bước 5: Hoàn tất test lỗi có kiểm soát**
-  Chạy `dotnet run --project tests/Wp7Binding.Tests/Wp7Binding.Tests.csproj -c Release`; kỳ vọng PASS cho missing dependency/type/member và log một dòng mỗi marker.
+  Chạy `dotnet run --project tests/Wp7Binding.Tests/Wp7Binding.Tests.csproj -c Release`; kỳ vọng PASS cho unresolved identity, định dạng missing-type/member và log một dòng mỗi marker.
 - [ ] **Bước 6: Thêm nút BIND1 riêng trong host**
   Thêm nút “Run BIND1 Probe”, chạy trên worker task như ILRUN1, cập nhật log/status trên main thread; không đổi hành vi nút ILRUN1.
 - [ ] **Bước 7: Build iOS host trên cấu hình chuẩn**

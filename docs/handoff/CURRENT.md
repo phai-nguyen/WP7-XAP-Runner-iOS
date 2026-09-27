@@ -1260,6 +1260,10 @@ BIND1 remains blocked until a physical iOS 18.7 test produces `[ILRUN1][END] PAS
 The user requested sequential names for test builds. These labels are **outside the app** and identify the GitHub Actions run, artifact, and IPA filename only.
 
 - The current ROOTSR device-test build is labeled **V6**.
+- V6 Actions run: `36295173910` — **SUCCESS / GREEN**.
+- V6 artifact: `WP7-ILRUN1-V6-ios15-unsigned`, ID `10923463336`.
+- Artifact digest: `sha256:bee07c71ebfe526439bc3e7af14e3c7d6aa9c77a8271fe838196f40b24aa4ec8`.
+- The IPA filename inside the artifact is `WP7-ILRUN1-V6-ios15-unsigned.ipa`.
 - The app's displayed experiment marker remains `ILRUN1-NET9-ROOTSR`.
 - `ApplicationVersion` and `ApplicationDisplayVersion` are unchanged.
 - Future manual workflow runs accept labels such as `V7`, `V8`, and so on; push-triggered builds default to `V6` unless the workflow default is advanced.

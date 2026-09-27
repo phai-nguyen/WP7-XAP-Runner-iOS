@@ -1,6 +1,6 @@
 # WP7 XAP Runner for iOS — CURRENT HANDOFF
 
-**Date:** 2026-09-26  
+**Date:** 2026-09-27  
 **Canonical repository:** `phai-nguyen/WP7-XAP-Runner-iOS`  
 **Canonical branch:** `main`  
 **Project type:** Windows Phone 7 emulator / binary-compatibility runtime research for iOS  
@@ -142,10 +142,10 @@ XAPSCAN1                 GREEN
 ILRUN1 build             GREEN
     |
     v
-ILRUN1 physical device   CURRENT
+ILRUN1 physical device   GREEN
     |
     v
-BIND1                     NEXT after execution-engine proof
+BIND1                     DESIGN REVIEW
     |
     v
 XAML1
@@ -1269,3 +1269,21 @@ The user requested sequential names for test builds. These labels are **outside 
 - Future manual workflow runs accept labels such as `V7`, `V8`, and so on; push-triggered builds default to `V6` unless the workflow default is advanced.
 
 The label is validated as `V` followed by digits and does not alter the binary's app identity/version.
+
+
+## 32. V6 ILRUN1-NET9-ROOTSR device result — GREEN; BIND1 design review
+
+The V6 test build completed on a physical iPhone running iOS 18.7 on 2026-09-27. The user-provided screenshot and device logs show the complete successful external managed-IL path:
+
+```text
+[ILRUN1][FILE_FOUND]
+[ILRUN1][FILE_READ_OK] bytes=4608
+[ILRUN1][ASSEMBLY_LOAD_OK] IlPayload, Version=1.0.0.0...
+[ILRUN1][TYPE_RESOLVE_OK] IlPayload.EntryPoint
+[ILRUN1][METHOD_RESOLVE_OK] IlPayload.EntryPoint.Run()
+[ILRUN1][METHOD_INVOKE_OK] result=XAP_ILRUN1_PASS:42
+[ILRUN1][PASS] external managed IL executed on iOS
+[ILRUN1][END] PASS
+```
+
+This supersedes the earlier ROOTSR device-test-pending gate in sections 29–30. BIND1 is now the active milestone. The proposed BIND1 direction uses the existing pinned MIT-licensed Aleterated WP7/XNA fixture solely as a real assembly-binding probe; it does not include XNA Graphics or game-loop implementation. The design spec is committed at `docs/superpowers/specs/2026-09-27-bind1-assembly-binding-design.md` and awaits user review. No BIND1 implementation has started.

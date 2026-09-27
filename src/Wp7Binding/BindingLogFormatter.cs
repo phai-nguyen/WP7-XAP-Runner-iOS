@@ -17,6 +17,11 @@ public static class BindingLogFormatter
     public static string FormatMissingMember(string member, string type, string assembly) =>
         $"[BIND1][MISSING_MEMBER] member={Escape(member)} type={Escape(type)} assembly={Escape(assembly)}";
 
+    public static string FormatBindFail(AssemblyIdentity requested, string exception) =>
+        $"[BIND1][ASSEMBLY_BIND_FAIL] requested=({FormatIdentity(requested)}) exception={Escape(exception)}";
+
+    public static string FormatEnd(bool passed) => passed ? "[BIND1][END] PASS" : "[BIND1][END] FAIL";
+
     private static string FormatIdentity(AssemblyIdentity identity)
     {
         ArgumentNullException.ThrowIfNull(identity);

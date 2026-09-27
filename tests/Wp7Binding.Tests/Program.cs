@@ -8,6 +8,8 @@ Run(nameof(PackageExactMatchPrecedesRedirect), PackageExactMatchPrecedesRedirect
 Run(nameof(ConfiguredRedirectResolvesPresentTarget), ConfiguredRedirectResolvesPresentTarget);
 Run(nameof(RedirectRequiresPresentTarget), RedirectRequiresPresentTarget);
 Run(nameof(NoNameOnlyFallback), NoNameOnlyFallback);
+Run(nameof(FormatterEscapesNewlinesAndKeepsOneMarkerPerLine), FormatterEscapesNewlinesAndKeepsOneMarkerPerLine);
+Run(nameof(FormatterEmitsRequestRedirectResolveAndMissingMarkers), FormatterEmitsRequestRedirectResolveAndMissingMarkers);
 return failures == 0 ? 0 : 1;
 
 void Run(string name, Action test)
@@ -107,6 +109,45 @@ static void NoNameOnlyFallback()
     var result = resolver.Resolve(ToAssemblyName(request));
 
     Require(result.Target is null, "same name with different version must not bind");
+}
+
+static void FormatterEscapesNewlinesAndKeepsOneMarkerPerLine()
+{
+    var identity = Identity("Legacy\r\n.Contract", new Version(1, 2, 3, 4), "neutral", "null");
+    var lines = new[]
+    {
+        BindingLogFormatter.FormatRequest(identity),
+        BindingLogFormatter.FormatRedirect(identity, Identity("Compat.Contract", new Version(1, 0, 0, 0), "neutral", "null"), "redirect\r\nreason"),
+        BindingLogFormatter.FormatResolve(identity, identity, "package\r\nsource"),
+        BindingLogFormatter.FormatMissingType("Ns.Type\r\nName", "Legacy.Contract"),
+        BindingLogFormatter.FormatMissingMember("Run\r\nNow", "Ns.Type", "Legacy.Contract")
+    };
+
+    foreach (var line in lines)
+    {
+        Require(!line.Contains('\r') && !line.Contains('\n'), $"marker must occupy one physical line, got {line}");
+        Require(line.Contains("\\r\\n", StringComparison.Ordinal), $"embedded CR/LF must be escaped, got {line}");
+    }
+}
+
+static void FormatterEmitsRequestRedirectResolveAndMissingMarkers()
+{
+    var from = Identity("Legacy.Contract", new Version(1, 2, 3, 4), "neutral", "0102030405060708");
+    var to = Identity("Compat.Contract", new Version(1, 0, 0, 0), "neutral", "null");
+    var lines = new[]
+    {
+        (BindingLogFormatter.FormatRequest(from), "[BIND1][REQUEST]"),
+        (BindingLogFormatter.FormatRedirect(from, to, "explicit"), "[BIND1][REDIRECT]"),
+        (BindingLogFormatter.FormatResolve(from, to, "compat"), "[BIND1][RESOLVE_OK]"),
+        (BindingLogFormatter.FormatMissingType("Ns.Game", "Legacy.Contract"), "[BIND1][MISSING_TYPE]"),
+        (BindingLogFormatter.FormatMissingMember("Run()", "Ns.Game", "Legacy.Contract"), "[BIND1][MISSING_MEMBER]")
+    };
+
+    foreach (var (line, marker) in lines)
+    {
+        Require(line.StartsWith(marker + " ", StringComparison.Ordinal), $"expected marker {marker}, got {line}");
+        Require(line.Contains("version=", StringComparison.Ordinal) || marker.StartsWith("[BIND1][MISSING_", StringComparison.Ordinal), $"identity fields missing from {line}");
+    }
 }
 
 static AssemblyIdentity Identity(string name, Version version, string culture, string publicKeyToken) =>

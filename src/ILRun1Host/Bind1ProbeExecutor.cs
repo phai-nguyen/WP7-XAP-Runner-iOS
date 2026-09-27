@@ -40,38 +40,14 @@ internal static class Bind1ProbeExecutor
 
         void RecordException(Exception exception)
         {
-            if (exception is ReflectionTypeLoadException reflectionFailure)
+            var classification = Bind1ExceptionClassifier.Classify(exception);
+            if (classification is not null)
             {
-                var loaderFailure = reflectionFailure.LoaderExceptions.FirstOrDefault(error => error is not null);
-                if (loaderFailure is not null)
-                {
-                    RecordException(loaderFailure);
-                    return;
-                }
+                RecordBoundary(classification.Marker);
+                return;
             }
 
-            switch (exception)
-            {
-                case FileNotFoundException:
-                    RecordBoundary(BindingLogFormatter.FormatBindFail(entryIdentity,
-                        $"{exception.GetType().Name}: {exception.Message}"));
-                    break;
-                case TypeLoadException typeFailure:
-                    RecordBoundary(BindingLogFormatter.FormatMissingType(
-                        typeFailure.TypeName ?? entryTypeName,
-                        entryIdentity.Name));
-                    break;
-                case MissingMemberException memberFailure:
-                    RecordBoundary(BindingLogFormatter.FormatMissingMember(
-                        memberFailure.Message,
-                        entryTypeName,
-                        entryIdentity.Name));
-                    break;
-                default:
-                    RecordBoundary(BindingLogFormatter.FormatBindFail(entryIdentity,
-                        $"{exception.GetType().Name}: {exception.Message}"));
-                    break;
-            }
+            Emit($"[BIND1][PROBE_FAIL] {exception.GetType().Name}: {exception.Message}");
         }
 
         Emit("[BIND1][START]");
@@ -180,8 +156,7 @@ internal static class Bind1ProbeExecutor
                         }
                         catch (Exception ex)
                         {
-                            RecordBoundary(BindingLogFormatter.FormatBindFail(entryIdentity,
-                                $"Invalid assembly request: {ex.Message}"));
+                            Emit($"[BIND1][PROBE_FAIL] Invalid assembly request: {ex.GetType().Name}: {ex.Message}");
                             return null;
                         }
 
@@ -248,11 +223,6 @@ internal static class Bind1ProbeExecutor
                                 diagnosticSuccess = true;
                             }
                         }
-                    }
-                    catch (Exception ex) when (ex is FileNotFoundException or TypeLoadException or
-                                               MissingMemberException or ReflectionTypeLoadException)
-                    {
-                        RecordException(ex);
                     }
                     catch (Exception ex)
                     {

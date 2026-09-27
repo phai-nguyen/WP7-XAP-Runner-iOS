@@ -189,15 +189,16 @@ static void MissingAssemblyReportsTheActualRequestedIdentity()
     var result = Bind1ExceptionClassifier.Classify(exception);
 
     Require(result is not null, "a missing assembly with a complete requested identity is a compatibility boundary");
-    Require(result.Marker.Contains("name=Dependency.Contract", StringComparison.Ordinal), "marker must identify the requested dependency");
-    Require(result.Marker.Contains("version=2.3.4.5", StringComparison.Ordinal), "marker must preserve the requested version");
-    Require(!result.Marker.Contains("name=Aleterated", StringComparison.Ordinal), "marker must not substitute the entry assembly");
+    var marker = result?.Marker ?? string.Empty;
+    Require(marker.Contains("name=Dependency.Contract", StringComparison.Ordinal), "marker must identify the requested dependency");
+    Require(marker.Contains("version=2.3.4.5", StringComparison.Ordinal), "marker must preserve the requested version");
+    Require(!marker.Contains("name=Aleterated", StringComparison.Ordinal), "marker must not substitute the entry assembly");
 }
 
 static void MissingTypeAndMemberDoNotInventEntryAssemblyAttribution()
 {
     var missingType = Bind1ExceptionClassifier.Classify(new TypeLoadException(
-        "Could not load referenced dependency type.", "Dependency.Namespace.Widget"));
+        "Could not load referenced dependency type.", "Dependency.Namespace.Widget", null));
     var missingMember = Bind1ExceptionClassifier.Classify(new MissingMemberException(
         "Dependency.Namespace.Widget.Render is missing."));
 

@@ -34,11 +34,11 @@
 
 - Tạo `src/Wp7Binding/Wp7Binding.csproj`: thư viện .NET thuần chứa logic BIND1.
 - Tạo `src/Wp7Binding/AssemblyIdentity.cs`: chuẩn hóa và so khớp identity.
-- Tạo `src/Wp7Binding/PackageAssemblyCatalog.cs`: danh mục assembly riêng trong XAP.
+- Tạo `src/Wp7Binding/PackageAssemblyCatalog.cs`: `PackageAssembly(AssemblyIdentity Identity, string EntryPath, byte[] Image)` và danh mục assembly riêng trong XAP.
 - Tạo `src/Wp7Binding/AssemblyBindingResolver.cs`: exact match, redirect và quyết định fallback.
 - Tạo `src/Wp7Binding/BindingLogFormatter.cs`: định dạng marker BIND1 an toàn theo dòng.
 - Tạo `tests/Wp7Binding.Tests/Wp7Binding.Tests.csproj` và `tests/Wp7Binding.Tests/Program.cs`: bộ kiểm thử console không cần UIKit hoặc NuGet ngoài.
-- Tạo `tests/validate-bind1-fixture.py`: xác minh hash XAP, entry assembly/type và manifest scanner.
+- Tạo `tests/validate-bind1-fixture.py`: xác minh hash XAP, entry assembly/type và manifest scanner.\n- Tạo `tests/test_validate_bind1_fixture.py`: unit test validator với report hợp lệ, sai hash và sai entry.
 - Sửa `.github/workflows/wp7-ilrun1-ios.yml`: tải/kiểm tra fixture, đóng gói XAP và report làm raw bundle resource; build artifact BIND1 với nhãn V7.
 - Sửa `tests/assert-ilrun1-interpreter-config.py`: chỉ cấm tham chiếu tĩnh tới payload IlPayload; cho phép tham chiếu thư viện resolver BIND1.
 - Sửa `src/ILRun1Host/ILRun1Host.csproj`: tham chiếu thư viện resolver và khai báo tài nguyên XAP/report; giữ nguyên cấu hình interpreter/trimmer.
@@ -59,9 +59,9 @@
 
 **Giao diện:**
 - `AssemblyIdentity.FromAssemblyName(AssemblyName name)` chuẩn hóa name, version, culture (`neutral` khi rỗng) và public-key token (`null` khi rỗng).
-- `PackageAssemblyCatalog.TryGetExact(AssemblyIdentity identity, out PackageAssembly assembly)` chỉ thành công khi cả bốn trường khớp; so sánh name/culture không phân biệt hoa thường, version/token chính xác.
-- `AssemblyBindingResolver.Resolve(AssemblyName requested)` trả `BindingResolution` có requested identity, target nếu có, nguồn `package|compat`, và lý do redirect nếu có. Không tìm thấy thì trả kết quả unresolved để host trả `null` cho runtime.
-- `BindingLogFormatter.FormatRequest/FormatRedirect/FormatResolve/FormatBindFail` trả từng marker trên đúng một dòng, escape CR/LF trong dữ liệu đầu vào.
+- `PackageAssembly(AssemblyIdentity Identity, string EntryPath, byte[] Image)` biểu diễn một assembly trong gói. `PackageAssemblyCatalog.TryGetExact(AssemblyIdentity identity, out PackageAssembly assembly)` chỉ thành công khi cả bốn trường khớp; so sánh name/culture không phân biệt hoa thường, version/token chính xác.
+- `BindingResolution(AssemblyIdentity Requested, PackageAssembly? Target, string? Source, string? RedirectReason)` biểu diễn quyết định. `AssemblyBindingResolver.Resolve(AssemblyName requested)` trả nguồn `package|compat` khi tìm thấy; nếu không, target/source là null để host trả `null` cho runtime. Resolver nhận catalog và bảng redirect được inject lúc khởi tạo.
+- `BindingLogFormatter.FormatRequest/FormatRedirect/FormatResolve/FormatBindFail/FormatEnd` trả từng marker trên đúng một dòng, escape CR/LF trong dữ liệu đầu vào.
 
 - [ ] **Bước 1: Viết test đỏ cho so khớp identity**
   Trong `Program.cs`, thêm `IdentityRequiresExactVersionCultureAndToken()`: cùng identity phải khớp; thay lần lượt version, culture hoặc token thì không khớp.

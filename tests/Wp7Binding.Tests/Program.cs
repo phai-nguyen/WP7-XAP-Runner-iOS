@@ -10,6 +10,7 @@ Run(nameof(RedirectRequiresPresentTarget), RedirectRequiresPresentTarget);
 Run(nameof(NoNameOnlyFallback), NoNameOnlyFallback);
 Run(nameof(FormatterEscapesNewlinesAndKeepsOneMarkerPerLine), FormatterEscapesNewlinesAndKeepsOneMarkerPerLine);
 Run(nameof(FormatterEmitsRequestRedirectResolveAndMissingMarkers), FormatterEmitsRequestRedirectResolveAndMissingMarkers);
+Run(nameof(UnresolvedIdentityProducesBindFailAndEndMarkers), UnresolvedIdentityProducesBindFailAndEndMarkers);
 return failures == 0 ? 0 : 1;
 
 void Run(string name, Action test)
@@ -148,6 +149,24 @@ static void FormatterEmitsRequestRedirectResolveAndMissingMarkers()
         Require(line.StartsWith(marker + " ", StringComparison.Ordinal), $"expected marker {marker}, got {line}");
         Require(line.Contains("version=", StringComparison.Ordinal) || marker.StartsWith("[BIND1][MISSING_", StringComparison.Ordinal), $"identity fields missing from {line}");
     }
+}
+
+static void UnresolvedIdentityProducesBindFailAndEndMarkers()
+{
+    var request = Identity("Unavailable.Contract", new Version(1, 0, 0, 0), "neutral", "null");
+    var resolver = new AssemblyBindingResolver(
+        new PackageAssemblyCatalog([]),
+        new Dictionary<AssemblyIdentity, AssemblyIdentity>());
+    var resolution = resolver.Resolve(ToAssemblyName(request));
+    var bindFail = BindingLogFormatter.FormatBindFail(resolution.Requested, "FileNotFoundException: not found\r\ndetails");
+    var end = BindingLogFormatter.FormatEnd(passed: false);
+
+    Require(resolution.Target is null && resolution.Source is null, "missing identity must remain unresolved");
+    Require(bindFail.StartsWith("[BIND1][ASSEMBLY_BIND_FAIL] ", StringComparison.Ordinal), "unresolved identity must emit the assembly bind-fail marker");
+    Require(end == "[BIND1][END] FAIL", $"expected a controlled fail end marker, got {end}");
+    Require(!bindFail.Contains('\r') && !bindFail.Contains('\n'), "exception data must stay on one marker line");
+    Require(bindFail.Contains("\\r\\ndetails", StringComparison.Ordinal), "exception newlines must be escaped");
+    Require(string.CompareOrdinal(bindFail, end) < 0, "bind failure must precede the end marker");
 }
 
 static AssemblyIdentity Identity(string name, Version version, string culture, string publicKeyToken) =>

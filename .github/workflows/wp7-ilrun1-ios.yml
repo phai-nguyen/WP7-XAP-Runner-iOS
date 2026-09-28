@@ -1,5 +1,5 @@
 name: WP7 BIND1 iOS
-run-name: ${{ inputs.test_label || 'V8' }} | WP7 BIND1 iOS
+run-name: ${{ inputs.test_label || 'V9' }} | WP7 BIND1 iOS
 
 on:
   push:
@@ -19,14 +19,14 @@ on:
       test_label:
         description: External test label; does not change the app version.
         required: true
-        default: V8
+        default: V9
         type: string
 
 jobs:
   ilrun1-ios15:
     runs-on: macos-15
     env:
-      TEST_LABEL: ${{ inputs.test_label || 'V8' }}
+      TEST_LABEL: ${{ inputs.test_label || 'V9' }}
     timeout-minutes: 60
 
     steps:
@@ -245,6 +245,6 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: WP7-BIND1-${{ inputs.test_label || 'V8' }}-ios15-unsigned
-          path: artifacts/WP7-BIND1-${{ inputs.test_label || 'V8' }}-ios15-unsigned.ipa
+          name: WP7-BIND1-${{ inputs.test_label || 'V9' }}-ios15-unsigned
+          path: artifacts/WP7-BIND1-${{ inputs.test_label || 'V9' }}-ios15-unsigned.ipa
           if-no-files-found: error

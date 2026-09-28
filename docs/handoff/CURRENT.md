@@ -1341,6 +1341,14 @@ Current gate:
 
 ```text
 BIND1 V8 CI/build                 GREEN
-BIND1 V8 iOS 18.7 device probe    WAITING FOR USER TEST/LOGS
+BIND1 V8 iOS 18.7 device probe    NOT YET RUN
 WP7/XNA game execution            NOT CLAIMED
 ```
+
+## 35. V8 device attempt — BIND1 screen was not wired; V9 fix prepared
+
+The user downloaded and installed the correctly named `WP7-BIND1-V8-ios15-unsigned.ipa`, as confirmed by the 2026-09-28 screen recording. Its startup log shows `ILRUN1-NET9-ROOTSR` and `[ILRUN1][END] PASS`; this is expected because the external V8 label does not change the app's internal build/display identity and the existing startup ILRUN1 check still runs first. The BIND1 probe itself was not executed: the uploaded logs contain no `[BIND1]` marker.
+
+Root cause found in source: `MainViewController` defines the interactive `BIND1 Probe` button, but `AppDelegate.FinishedLaunching` created a separate legacy `UIViewController` with the old ILRUN1-only screen. Therefore users could not reach BIND1 despite installing the correct V8 artifact. The fix wires `MainViewController` as the window root and adds a static regression assertion for that connection and the visible BIND1 button.
+
+The fix advances the external test label to **V9** (still outside app identity/version). Python contract checks and the 4 fixture-contract tests pass locally. This environment lacks the .NET SDK, so V9 iOS compilation and device test are pending GitHub Actions. Do not ask the user to reinstall V8 or treat the current logs as a BIND1 result. After V9 CI is GREEN, send the V9 artifact; the user should wait for startup ILRUN1 PASS, tap **BIND1 Probe**, then provide fresh logs/video.

@@ -1340,8 +1340,8 @@ Look for `[BIND1][REQUEST]` followed by the first real `[BIND1][RESOLVE_OK]`, `[
 Current gate:
 
 ```text
-BIND1 V8 CI/build                 GREEN
-BIND1 V8 iOS 18.7 device probe    NOT YET RUN
+BIND1 V9 CI/build                 GREEN
+BIND1 V9 iOS 18.7 device probe    WAITING FOR USER TEST/LOGS
 WP7/XNA game execution            NOT CLAIMED
 ```
 
@@ -1351,4 +1351,13 @@ The user downloaded and installed the correctly named `WP7-BIND1-V8-ios15-unsign
 
 Root cause found in source: `MainViewController` defines the interactive `BIND1 Probe` button, but `AppDelegate.FinishedLaunching` created a separate legacy `UIViewController` with the old ILRUN1-only screen. Therefore users could not reach BIND1 despite installing the correct V8 artifact. The fix wires `MainViewController` as the window root and adds a static regression assertion for that connection and the visible BIND1 button.
 
-The fix advances the external test label to **V9** (still outside app identity/version). Python contract checks and the 4 fixture-contract tests pass locally. This environment lacks the .NET SDK, so V9 iOS compilation and device test are pending GitHub Actions. Do not ask the user to reinstall V8 or treat the current logs as a BIND1 result. After V9 CI is GREEN, send the V9 artifact; the user should wait for startup ILRUN1 PASS, tap **BIND1 Probe**, then provide fresh logs/video.
+The fix advances the external test label to **V9** (still outside app identity/version). Python contract checks and the four fixture-contract tests passed locally. GitHub Actions then completed the .NET 9.0.303 / Xcode 16.4 / iOS 18.5 build successfully:
+
+- Run: `36436673662` — **SUCCESS / BUILD GREEN**
+- Run URL: https://github.com/phai-nguyen/WP7-XAP-Runner-iOS/actions/runs/36436673662
+- Commit: `c022436f7f90706eb67d570e165869fbb5f48055`
+- Artifact: `WP7-BIND1-V9-ios15-unsigned`
+- Artifact ID: `10975534517`
+- Artifact ZIP digest: `sha256:e5fcdc8dab124d6d3b7118db9abbc23fcd16028195cb718abd22717a169a0654`
+
+V9 is now ready for the physical-device BIND1 probe. Install this artifact, wait for the startup ILRUN1 PASS, tap **BIND1 Probe**, then provide fresh logs/video. The V8 logs remain ILRUN1-only and are not a BIND1 result.

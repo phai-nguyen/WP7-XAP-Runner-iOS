@@ -29,7 +29,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../Wp7Binding/Wp7Binding.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- IlPayload.dll is deliberately a raw bundle resource, NOT a ProjectReference. -->
     <BundleResource Include="Assets/IlPayload.dll" LogicalName="IlPayload.dll" />
+    <BundleResource Include="Assets/Aleterated.xap" LogicalName="Aleterated.xap" />
+    <BundleResource Include="Assets/Aleterated.xapscan1.json" LogicalName="Aleterated.xapscan1.json" />
   </ItemGroup>
 </Project>

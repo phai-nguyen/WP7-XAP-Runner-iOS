@@ -1,0 +1,24 @@
+name: WP7 BIND1 Core Tests
+
+on:
+  push:
+    branches: [main, codex/bind1-v7]
+    paths:
+      - 'src/Wp7Binding/**'
+      - 'tests/Wp7Binding.Tests/**'
+      - '.github/workflows/wp7-bind1-core-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bind1-core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.303'
+      - name: Run BIND1 core tests
+        run: dotnet run --project tests/Wp7Binding.Tests/Wp7Binding.Tests.csproj -c Release

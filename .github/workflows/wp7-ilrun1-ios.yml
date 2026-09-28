@@ -1,27 +1,32 @@
-name: WP7 ILRUN1 iOS
-run-name: ${{ inputs.test_label || 'V6' }} | WP7 ILRUN1 iOS
+name: WP7 BIND1 iOS
+run-name: ${{ inputs.test_label || 'V9' }} | WP7 BIND1 iOS
 
 on:
   push:
-    branches: [main]
+    branches: [main, codex/bind1-v7]
     paths:
       - 'src/IlPayload/**'
       - 'src/ILRun1Host/**'
+      - 'src/Wp7Binding/**'
+      - 'src/XapScan/**'
+      - 'tests/Wp7Binding.Tests/**'
       - 'tests/assert-ilrun1-interpreter-config.py'
+      - 'tests/assert-real-wp7-xna.py'
+      - 'tests/test_real_wp7_xna_contract.py'
       - '.github/workflows/wp7-ilrun1-ios.yml'
   workflow_dispatch:
     inputs:
       test_label:
         description: External test label; does not change the app version.
         required: true
-        default: V6
+        default: V9
         type: string
 
 jobs:
   ilrun1-ios15:
     runs-on: macos-15
     env:
-      TEST_LABEL: ${{ inputs.test_label || 'V6' }}
+      TEST_LABEL: ${{ inputs.test_label || 'V9' }}
     timeout-minutes: 60
 
     steps:
@@ -85,6 +90,30 @@ jobs:
         shell: bash
         run: python3 tests/assert-ilrun1-interpreter-config.py
 
+      - name: Test BIND1 fixture report contract
+        run: python3 -m unittest tests/test_real_wp7_xna_contract.py -v
+
+      - name: Run BIND1 resolver tests
+        run: dotnet run --project tests/Wp7Binding.Tests/Wp7Binding.Tests.csproj -c Release
+
+      - name: Build XAPSCAN1
+        run: dotnet build src/XapScan/XapScan.csproj -c Release
+
+      - name: Fetch, scan, validate, and package Aleterated fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci/real src/ILRun1Host/Assets
+          curl --fail --location --retry 3 \
+            'https://raw.githubusercontent.com/Akfly/Aleterated/6144ca9a7b97cba4d781be40fdedf286e8d7f961/rotations2/rotations2/bin/Windows%20Phone/Debug/Aleterated.xap' \
+            --output .ci/real/Aleterated.xap
+          echo '69bd93627f4fa2c567748e36c3487c083db95c0efe01ef203bf60179bf9342a1  .ci/real/Aleterated.xap' | shasum -a 256 --check
+          dotnet run --project src/XapScan/XapScan.csproj -c Release --no-build -- \
+            .ci/real/Aleterated.xap --out .ci/real/Aleterated.xapscan1.json
+          python3 tests/assert-real-wp7-xna.py .ci/real/Aleterated.xapscan1.json
+          cp .ci/real/Aleterated.xap src/ILRun1Host/Assets/Aleterated.xap
+          cp .ci/real/Aleterated.xapscan1.json src/ILRun1Host/Assets/Aleterated.xapscan1.json
+
       - name: Build external IL payload
         shell: bash
         run: |
@@ -99,14 +128,17 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          if grep -nE '<ProjectReference([[:space:]]|>)|<Reference[[:space:]][^>]*Include="IlPayload' src/ILRun1Host/ILRun1Host.csproj; then
+          if grep -nE '<ProjectReference[^>]*IlPayload|<Reference[[:space:]][^>]*Include="IlPayload' src/ILRun1Host/ILRun1Host.csproj; then
             echo '[ILRUN1][STATIC_REFERENCE_FAIL] IlPayload must remain an opaque runtime file.'
             exit 1
           fi
+          grep -n 'ProjectReference Include="../Wp7Binding/Wp7Binding.csproj"' src/ILRun1Host/ILRun1Host.csproj
           grep -n 'BundleResource Include="Assets/IlPayload.dll"' src/ILRun1Host/ILRun1Host.csproj
+          grep -n 'BundleResource Include="Assets/Aleterated.xap"' src/ILRun1Host/ILRun1Host.csproj
+          grep -n 'BundleResource Include="Assets/Aleterated.xapscan1.json"' src/ILRun1Host/ILRun1Host.csproj
           echo '[ILRUN1][STATIC_REFERENCE_CHECK] PASS'
 
-      - name: Publish ILRUN1 stable-host interpreter iOS 15 device app
+      - name: Publish BIND1 stable-host interpreter iOS 15 device app
         shell: bash
         run: |
           set -euxo pipefail
@@ -133,16 +165,35 @@ jobs:
           test -n "$APP"
           test -d "$APP"
           test -s "$APP/IlPayload.dll"
+          test -s "$APP/Aleterated.xap"
+          test -s "$APP/Aleterated.xapscan1.json"
           echo "APP=$APP" >> "$GITHUB_ENV"
 
           EXECUTABLE="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Info.plist")"
           MIN_IOS="$(/usr/libexec/PlistBuddy -c 'Print :MinimumOSVersion' "$APP/Info.plist")"
+          APP_TITLE="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$APP/Info.plist")"
+          APP_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist")"
+          APP_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Info.plist")"
+          APP_DISPLAY_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Info.plist")"
           echo "CFBundleExecutable=$EXECUTABLE"
           echo "MinimumOSVersion=$MIN_IOS"
+          echo "CFBundleDisplayName=$APP_TITLE"
+          echo "CFBundleIdentifier=$APP_ID"
+          echo "CFBundleVersion=$APP_VERSION"
+          echo "CFBundleShortVersionString=$APP_DISPLAY_VERSION"
           test "$MIN_IOS" = "15.0"
+          test "$APP_TITLE" = "WP7 ILRUN1"
+          test "$APP_ID" = "com.phai.wp7.ilrun1"
+          test "$APP_VERSION" = "1"
+          test "$APP_DISPLAY_VERSION" = "0.1"
           test -s "$APP/$EXECUTABLE"
+          echo "APP_BUNDLE_NAME=$(basename "$APP")" >> "$GITHUB_ENV"
+          echo "APP_EXECUTABLE=$EXECUTABLE" >> "$GITHUB_ENV"
+          python3 tests/assert-real-wp7-xna.py "$APP/Aleterated.xapscan1.json"
+          echo '[BIND1][RAW_RESOURCES] PASS'
+          echo '[APP][IDENTITY_UNCHANGED] PASS'
 
-          echo '[ILRUN1][DEVICE_APP_BUILD] PASS'
+          echo '[BIND1][DEVICE_APP_BUILD] PASS'
           echo '[ILRUN1][PAYLOAD_RAW_FILE] PASS'
 
       - name: Package unsigned IPA for ESign
@@ -154,13 +205,46 @@ jobs:
           cp -R "$APP" artifacts/Payload/
           (
             cd artifacts
-            zip -qry WP7-ILRUN1-${TEST_LABEL}-ios15-unsigned.ipa Payload
+            zip -qry WP7-BIND1-${TEST_LABEL}-ios15-unsigned.ipa Payload
           )
-          test -s artifacts/WP7-ILRUN1-${TEST_LABEL}-ios15-unsigned.ipa
-          shasum -a 256 artifacts/WP7-ILRUN1-${TEST_LABEL}-ios15-unsigned.ipa
+          test -s artifacts/WP7-BIND1-${TEST_LABEL}-ios15-unsigned.ipa
+          shasum -a 256 artifacts/WP7-BIND1-${TEST_LABEL}-ios15-unsigned.ipa
+
+      - name: Verify unsigned IPA contents
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "artifacts/WP7-BIND1-${TEST_LABEL}-ios15-unsigned.ipa" "$APP_BUNDLE_NAME" "$APP_EXECUTABLE" <<'PY'
+          import plistlib
+          import sys
+          import zipfile
+
+          ipa_path, app_bundle, executable = sys.argv[1:]
+          prefix = f"Payload/{app_bundle}/"
+          required = {
+              prefix + executable,
+              prefix + "IlPayload.dll",
+              prefix + "Aleterated.xap",
+              prefix + "Aleterated.xapscan1.json",
+              prefix + "Info.plist",
+          }
+          with zipfile.ZipFile(ipa_path) as ipa:
+              names = set(ipa.namelist())
+              missing = sorted(required - names)
+              if missing:
+                  raise SystemExit(f"IPA is missing required files: {missing}")
+              info = plistlib.loads(ipa.read(prefix + "Info.plist"))
+              assert info["MinimumOSVersion"] == "15.0"
+              assert info["CFBundleDisplayName"] == "WP7 ILRUN1"
+              assert info["CFBundleIdentifier"] == "com.phai.wp7.ilrun1"
+              assert info["CFBundleVersion"] == "1"
+              assert info["CFBundleShortVersionString"] == "0.1"
+          print("[BIND1][IPA_CONTENTS] PASS")
+          print("[APP][IDENTITY_UNCHANGED] PASS")
+          PY
 
       - uses: actions/upload-artifact@v4
         with:
-          name: WP7-ILRUN1-${{ inputs.test_label || 'V6' }}-ios15-unsigned
-          path: artifacts/WP7-ILRUN1-${{ inputs.test_label || 'V6' }}-ios15-unsigned.ipa
+          name: WP7-BIND1-${{ inputs.test_label || 'V9' }}-ios15-unsigned
+          path: artifacts/WP7-BIND1-${{ inputs.test_label || 'V9' }}-ios15-unsigned.ipa
           if-no-files-found: error

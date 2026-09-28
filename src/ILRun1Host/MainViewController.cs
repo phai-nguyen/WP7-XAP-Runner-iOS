@@ -8,6 +8,7 @@ internal sealed class MainViewController : UIViewController
     private UITextView? _logView;
     private UILabel? _statusLabel;
     private UIButton? _runButton;
+    private UIButton? _bindButton;
     private bool _ranOnce;
     private bool _running;
 
@@ -55,14 +56,22 @@ internal sealed class MainViewController : UIViewController
         view.AddSubview(_logView);
 
         _runButton = UIButton.FromType(UIButtonType.System);
-        _runButton.Frame = new CGRect(16, view.Bounds.Height - 104, (view.Bounds.Width - 44) / 2, 44);
+        var buttonWidth = (view.Bounds.Width - 56) / 3;
+        _runButton.Frame = new CGRect(16, view.Bounds.Height - 104, buttonWidth, 44);
         _runButton.SetTitle("Chạy lại IL", UIControlState.Normal);
         _runButton.AutoresizingMask = UIViewAutoresizing.FlexibleTopMargin | UIViewAutoresizing.FlexibleRightMargin;
         _runButton.TouchUpInside += (_, _) => StartProbe();
         view.AddSubview(_runButton);
 
+        _bindButton = UIButton.FromType(UIButtonType.System);
+        _bindButton.Frame = new CGRect(28 + buttonWidth, view.Bounds.Height - 104, buttonWidth, 44);
+        _bindButton.SetTitle("BIND1 Probe", UIControlState.Normal);
+        _bindButton.AutoresizingMask = UIViewAutoresizing.FlexibleTopMargin | UIViewAutoresizing.FlexibleRightMargin;
+        _bindButton.TouchUpInside += (_, _) => StartBind1Probe();
+        view.AddSubview(_bindButton);
+
         var copyButton = UIButton.FromType(UIButtonType.System);
-        copyButton.Frame = new CGRect(28 + (view.Bounds.Width - 44) / 2, view.Bounds.Height - 104, (view.Bounds.Width - 44) / 2, 44);
+        copyButton.Frame = new CGRect(40 + buttonWidth * 2, view.Bounds.Height - 104, buttonWidth, 44);
         copyButton.SetTitle("Sao chép log", UIControlState.Normal);
         copyButton.AutoresizingMask = UIViewAutoresizing.FlexibleTopMargin | UIViewAutoresizing.FlexibleLeftMargin;
         copyButton.TouchUpInside += (_, _) =>
@@ -103,6 +112,8 @@ internal sealed class MainViewController : UIViewController
         _running = true;
         _runButton?.SetTitle("Đang chạy…", UIControlState.Normal);
         _runButton!.Enabled = false;
+        if (_bindButton is not null)
+            _bindButton.Enabled = false;
         _statusLabel.Text = "ILRUN1 đang chạy nền…";
         _logView.Text += "[UI][PROBE_BACKGROUND_START]\n";
         AppLog.Write("[UI][PROBE_BACKGROUND_START]");
@@ -151,11 +162,78 @@ internal sealed class MainViewController : UIViewController
                     _runButton.Enabled = true;
                     _runButton.SetTitle("Chạy lại IL", UIControlState.Normal);
                 }
+                if (_bindButton is not null)
+                    _bindButton.Enabled = true;
 
                 if (_statusLabel is not null)
                     _statusLabel.Text = result.Success
                         ? "PASS — external managed IL đã chạy"
                         : "FAIL/HANG boundary — lấy log trong Files";
+            });
+        });
+    }
+
+    private void StartBind1Probe()
+    {
+        if (_running || _logView is null || _statusLabel is null)
+            return;
+
+        _running = true;
+        _runButton?.SetTitle("Đang chạy…", UIControlState.Normal);
+        if (_runButton is not null)
+            _runButton.Enabled = false;
+        _bindButton?.SetTitle("Đang chạy…", UIControlState.Normal);
+        if (_bindButton is not null)
+            _bindButton.Enabled = false;
+        _statusLabel.Text = "BIND1 đang dò assembly…";
+        _logView.Text += "[UI][BIND1_BACKGROUND_START]\n";
+        AppLog.Write("[UI][BIND1_BACKGROUND_START]");
+
+        _ = Task.Run(() =>
+        {
+            Bind1ProbeResult result;
+            try
+            {
+                result = Bind1ProbeExecutor.Execute(line =>
+                {
+                    BeginInvokeOnMainThread(() =>
+                    {
+                        if (_logView is null)
+                            return;
+                        _logView.Text += line + "\n";
+                        _logView.ScrollRangeToVisible(new Foundation.NSRange(_logView.Text.Length, 0));
+                    });
+                });
+            }
+            catch (Exception ex)
+            {
+                AppLog.Write($"[BIND1][PROBE_TASK_FATAL] {ex.GetType().FullName}: {ex.Message}");
+                result = new Bind1ProbeResult(false, ex.ToString(), AppLog.TakeThisPath);
+            }
+
+            BeginInvokeOnMainThread(() =>
+            {
+                _running = false;
+                if (_runButton is not null)
+                {
+                    _runButton.Enabled = true;
+                    _runButton.SetTitle("Chạy lại IL", UIControlState.Normal);
+                }
+                if (_bindButton is not null)
+                {
+                    _bindButton.Enabled = true;
+                    _bindButton.SetTitle("BIND1 Probe", UIControlState.Normal);
+                }
+
+                if (_statusLabel is not null)
+                {
+                    var passed = result.Log.Contains("[BIND1][END] PASS", StringComparison.Ordinal);
+                    _statusLabel.Text = passed
+                        ? "BIND1 PASS — đã kiểm tra entry type"
+                        : result.DiagnosticSuccess
+                            ? "BIND1 đã ghi nhận boundary — xem log"
+                            : "BIND1 lỗi đầu vào — lấy log trong Files";
+                }
             });
         });
     }
